@@ -2,43 +2,180 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>الطلبات</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>عرض الطلبات - رواق</title>
+
 <style>
-body{font-family:Tahoma;background:#f5f5f5}
-table{width:90%;margin:auto;border-collapse:collapse;background:#fff}
-th,td{border:1px solid #ccc;padding:6px;text-align:center}
-th{background:#4b1d5a;color:#fff}
-button{background:#4b1d5a;color:#fff;border:none;padding:5px}
+:root{
+  --purple:#4b1f5c;
+  --bg:#f4f1f6;
+  --red:#f8d7da;
+  --yellow:#fff3cd;
+  --green:#d4edda;
+}
+
+body{
+  margin:0;
+  font-family:Tahoma, Arial;
+  background:var(--bg);
+}
+
+.container{
+  max-width:95%;
+  margin:20px auto;
+  background:#fff;
+  padding:15px;
+  border-radius:12px;
+}
+
+h2{
+  text-align:center;
+  color:var(--purple);
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:15px;
+  font-size:14px;
+}
+
+th, td{
+  border:1px solid #ddd;
+  padding:8px;
+  text-align:center;
+  vertical-align:top;
+}
+
+th{
+  background:var(--purple);
+  color:#fff;
+}
+
+.btn{
+  border:none;
+  padding:5px 8px;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:12px;
+  margin:2px;
+}
+
+.done{ background:#4b1f5c; color:#fff; }
+.edit{ background:#ffc107; }
+.delete{ background:#dc3545; color:#fff; }
+
+.back-btn{
+  margin-top:15px;
+  width:100%;
+  padding:12px;
+  background:#ddd;
+  color:#4b1f5c;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+.empty{
+  text-align:center;
+  margin-top:20px;
+  color:#777;
+}
 </style>
 </head>
+
 <body>
 
+<div class="container">
+<h2>عرض الطلبات</h2>
+
 <table>
+<thead>
 <tr>
-<th>الاسم</th><th>المشروب</th><th>الصافي</th><th>تم</th>
+  <th>العميل</th>
+  <th>الجوال</th>
+  <th>المناسبة</th>
+  <th>المشروبات</th>
+  <th>العربة</th>
+  <th>الصافي</th>
+  <th>إجراءات</th>
 </tr>
-<tbody id="body"></tbody>
+</thead>
+<tbody id="tableBody"></tbody>
 </table>
 
-<br><a href="index.html">رجوع</a>
+<div id="emptyMsg" class="empty" style="display:none">
+لا توجد طلبات
+</div>
+
+<button class="back-btn" onclick="location.href='index.html'">العودة</button>
+</div>
 
 <script>
-let orders=JSON.parse(localStorage.getItem("orders")||"[]");
-orders.forEach((o,i)=>{
-  if(!o.done){
-    body.innerHTML+=`
-    <tr>
-      <td>${o.name}</td>
-      <td>${o.drink}</td>
-      <td>${o.net}</td>
-      <td><button onclick="done(${i})">✓</button></td>
-    </tr>`;
+let orders = JSON.parse(localStorage.getItem("orders") || "[]");
+const body = document.getElementById("tableBody");
+const emptyMsg = document.getElementById("emptyMsg");
+
+// ترتيب حسب تاريخ المناسبة
+orders.sort((a,b)=> new Date(a.eventDate) - new Date(b.eventDate));
+
+let today = new Date();
+let hasOrders = false;
+
+orders.forEach((order, index)=>{
+  if(order.status === "جديد"){
+    hasOrders = true;
+
+    const eventDate = new Date(order.eventDate);
+    const diffDays = Math.ceil((eventDate - today) / (1000*60*60*24));
+
+    let color;
+    if(diffDays <= 2) color = "var(--red)";
+    else if(diffDays <= 5) color = "var(--yellow)";
+    else color = "var(--green)";
+
+    const tr = document.createElement("tr");
+    tr.style.background = color;
+
+    tr.innerHTML = `
+      <td>${order.name}</td>
+      <td>${order.phone}</td>
+      <td>${order.eventDate}</td>
+      <td>${order.drinks.join(" ، ")}</td>
+      <td>${order.cart}</td>
+      <td>${order.net}</td>
+      <td>
+        <button class="btn done" onclick="markDone(${index})">تم</button>
+        <button class="btn edit" onclick="editOrder(${index})">تعديل</button>
+        <button class="btn delete" onclick="deleteOrder(${index})">حذف</button>
+      </td>
+    `;
+
+    body.appendChild(tr);
   }
 });
-function done(i){
-  orders[i].done=true;
-  localStorage.setItem("orders",JSON.stringify(orders));
+
+if(!hasOrders){
+  emptyMsg.style.display = "block";
+}
+
+function markDone(i){
+  orders[i].status = "تم";
+  localStorage.setItem("orders", JSON.stringify(orders));
   location.reload();
+}
+
+function deleteOrder(i){
+  if(confirm("هل أنت متأكد من حذف الطلب؟")){
+    orders.splice(i,1);
+    localStorage.setItem("orders", JSON.stringify(orders));
+    location.reload();
+  }
+}
+
+function editOrder(i){
+  localStorage.setItem("editIndex", i);
+  location.href = "add.html";
 }
 </script>
 
