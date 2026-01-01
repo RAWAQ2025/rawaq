@@ -4,11 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>عرض الطلبات - رواق</title>
+
 <script>
 if(!sessionStorage.getItem("loggedIn")){
   location.replace("login.html");
 }
 </script>
+
 <style>
 :root{
   --purple:#4b1f5c;
@@ -64,7 +66,6 @@ let orders = JSON.parse(localStorage.getItem("orders") || "[]");
 const body = document.getElementById("tableBody");
 const emptyMsg = document.getElementById("emptyMsg");
 
-// ترتيب حسب تاريخ المناسبة (الأقرب أولاً)
 orders.sort((a,b)=> new Date(a.eventDate) - new Date(b.eventDate));
 
 let today = new Date();
@@ -79,7 +80,11 @@ orders.forEach((order, index)=>{
     const diffDays = Math.ceil((eventDate - today)/(1000*60*60*24));
     let color = diffDays<=2 ? "var(--red)" : diffDays<=5 ? "var(--yellow)" : "var(--green)";
 
-    const drinksList = (order.drinks||[]).map(d=>`<li>${d}</li>`).join("");
+    const drinksArr = Array.isArray(order.drinks)
+      ? order.drinks
+      : (order.drinks ? order.drinks.split("، ") : []);
+
+    const drinksList = drinksArr.map(d=>`<li>${d}</li>`).join("");
 
     const tr = document.createElement("tr");
     tr.style.background = color;
@@ -95,11 +100,8 @@ orders.forEach((order, index)=>{
         <button class="btn done" onclick="markDone(${index})">تم</button>
         <button class="btn edit" onclick="editOrder(${index})">تعديل</button>
         <button class="btn delete" onclick="deleteOrder(${index})">حذف</button>
-      </td
-      <td>
-  <button onclick="openInvoice(${index})">🧾 فاتورة</button>
-</td>
-      ` ;
+      </td>
+    `;
     body.appendChild(tr);
   }
 });
