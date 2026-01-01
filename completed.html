@@ -6,7 +6,10 @@
 <title>الطلبات المنجزة - رواق</title>
 
 <style>
-:root{--purple:#4b1f5c;--bg:#f4f1f6;}
+:root{
+  --purple:#4b1f5c;
+  --bg:#f4f1f6;
+}
 body{margin:0;font-family:Tahoma,Arial;background:var(--bg);}
 .container{max-width:95%;margin:20px auto;background:#fff;padding:15px;border-radius:12px;}
 h2{text-align:center;color:var(--purple);}
@@ -16,8 +19,6 @@ th{background:var(--purple);color:#fff;}
 details summary{cursor:pointer;color:var(--purple);font-weight:bold;}
 details ul{padding-right:18px;margin:6px 0 0;text-align:right;}
 .client-box,.money-box{line-height:1.6;font-size:13px;}
-.btn{border:none;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:12px;}
-.delete{background:#dc3545;color:#fff;}
 .back-btn{margin-top:15px;width:100%;padding:12px;background:#ddd;color:#4b1f5c;border:none;border-radius:10px;cursor:pointer;}
 .empty{text-align:center;margin-top:20px;color:#777;}
 </style>
@@ -37,7 +38,6 @@ details ul{padding-right:18px;margin:6px 0 0;text-align:right;}
   <th>العربة</th>
   <th>العربون / التأمين</th>
   <th>الصافي</th>
-  <th>حذف</th>
 </tr>
 </thead>
 <tbody id="tableBody"></tbody>
@@ -52,35 +52,39 @@ let orders = JSON.parse(localStorage.getItem("orders") || "[]");
 const body = document.getElementById("tableBody");
 const emptyMsg = document.getElementById("emptyMsg");
 
-let counter=1, hasOrders=false;
+let counter = 1;
+let hasOrders = false;
 
-orders.forEach((order,index)=>{
+orders.forEach(order=>{
   if(order.status === "تم"){
     hasOrders = true;
+
     const drinksList = (order.drinks||[]).map(d=>`<li>${d}</li>`).join("");
-    const tr=document.createElement("tr");
-    tr.innerHTML=`
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
       <td><strong>${counter++}</strong></td>
       <td class="client-box">${order.name}<br>${order.phone}</td>
       <td>${order.eventDate}</td>
-      <td><details><summary>عرض</summary><ul>${drinksList}</ul></details></td>
-      <td>${order.cart||""}</td>
-      <td class="money-box">عربون: ${order.deposit||0}<br>تأمين: ${order.insurance||0}</td>
-      <td>${order.net||0}</td>
-      <td><button class="btn delete" onclick="deleteOrder(${index})">حذف</button></td>`;
+      <td>
+        <details>
+          <summary>عرض</summary>
+          <ul>${drinksList}</ul>
+        </details>
+      </td>
+      <td>${order.cart}</td>
+      <td class="money-box">
+        عربون: ${order.deposit}<br>
+        تأمين: ${order.insurance}
+      </td>
+      <td>${order.net}</td>
+    `;
     body.appendChild(tr);
   }
 });
 
 if(!hasOrders) emptyMsg.style.display="block";
-
-function deleteOrder(i){
-  if(confirm("حذف الطلب نهائيًا؟")){
-    orders.splice(i,1);
-    localStorage.setItem("orders", JSON.stringify(orders));
-    location.reload();
-  }
-}
 </script>
+
 </body>
 </html>
