@@ -45,39 +45,25 @@ th{
   background:var(--purple);
   color:#fff;
 }
-details summary{
-  cursor:pointer;
-  color:var(--purple);
-  font-weight:bold;
-}
-details ul{
-  padding-right:18px;
-  margin:6px 0 0;
-  text-align:right;
-}
-.client-box{
+.client{
   line-height:1.6;
-  font-size:13px;
-}
-.client-box .phone{
-  color:#555;
-  font-size:12px;
-}
-.money-box{
-  line-height:1.6;
-  font-size:13px;
 }
 .btn{
   border:none;
-  padding:5px 8px;
+  padding:6px 10px;
   border-radius:6px;
   cursor:pointer;
   font-size:12px;
   margin:2px;
 }
-.done{background:#4b1f5c;color:#fff;}
-.edit{background:#ffc107;}
-.delete{background:#dc3545;color:#fff;}
+.done{
+  background:#4b1f5c;
+  color:#fff;
+}
+.delete{
+  background:#dc3545;
+  color:#fff;
+}
 .back-btn{
   margin-top:15px;
   width:100%;
@@ -105,112 +91,79 @@ details ul{
 <thead>
 <tr>
   <th>#</th>
-  <th>العميل</th>
+  <th>اسم العميل</th>
+  <th>رقم الجوال</th>
   <th>تاريخ المناسبة</th>
   <th>المشروبات</th>
   <th>العربة</th>
-  <th>العربون / التأمين</th>
   <th>الصافي</th>
-  <th>إجراءات</th>
+  <th>إجراء</th>
 </tr>
 </thead>
 <tbody id="tableBody"></tbody>
 </table>
 
-<div id="emptyMsg" class="empty" style="display:none">لا توجد طلبات</div>
+<div id="emptyMsg" class="empty" style="display:none">
+  لا توجد طلبات مسجلة
+</div>
 
-<button class="back-btn" onclick="location.href='index.html'">العودة</button>
+<button class="back-btn" onclick="location.href='index.html'">
+  العودة
+</button>
 </div>
 
 <script>
-let orders = JSON.parse(localStorage.getItem("orders") || "[]");
+// قراءة الطلبات
+const orders = JSON.parse(localStorage.getItem("orders") || "[]");
 const body = document.getElementById("tableBody");
 const emptyMsg = document.getElementById("emptyMsg");
 
-orders.sort((a,b)=> new Date(a.eventDate) - new Date(b.eventDate));
-
-let today = new Date();
-let counter = 1;
-let hasOrders = false;
-
-orders.forEach((order, index)=>{
-  if(order.status === "جديد"){
-    hasOrders = true;
-
-    const eventDate = new Date(order.eventDate);
-    const diffDays = Math.ceil((eventDate - today)/(1000*60*60*24));
-    let color =
-      diffDays <= 2 ? "var(--red)" :
-      diffDays <= 5 ? "var(--yellow)" :
-      "var(--green)";
-
-    const drinksArray = order.drinks
-      ? (Array.isArray(order.drinks) ? order.drinks : order.drinks.split("،"))
-      : [];
-
-    const drinksList = drinksArray.map(d=>`<li>${d}</li>`).join("");
-
-    const tr = document.createElement("tr");
-    tr.style.background = color;
-
-    tr.innerHTML = `
-      <td><strong>${counter++}</strong></td>
-
-      <td class="client-box">
-        ${order.name ? order.name : ""}
-        <div class="phone">${order.phone || ""}</div>
-      </td>
-
-      <td>${order.eventDate || ""}</td>
-
-      <td>
-        <details>
-          <summary>عرض</summary>
-          <ul>${drinksList}</ul>
-        </details>
-      </td>
-
-      <td>${order.cart || ""}</td>
-
-      <td class="money-box">
-        عربون: ${order.deposit || 0}<br>
-        تأمين: ${order.insurance || 0}
-      </td>
-
-      <td>${order.net || 0}</td>
-
-      <td>
-        <button class="btn done" onclick="markDone(${index})">تم</button>
-        <button class="btn edit" onclick="editOrder(${index})">تعديل</button>
-        <button class="btn delete" onclick="deleteOrder(${index})">حذف</button>
-      </td>
-    `;
-
-    body.appendChild(tr);
-  }
-});
-
-if(!hasOrders){
+if(orders.length === 0){
   emptyMsg.style.display = "block";
 }
 
+// عرض الطلبات
+orders.forEach((order, index) => {
+
+  // الاسم فقط — بدون أي تعويض برقم
+  const name = order.name && order.name.trim() !== "" ? order.name : "";
+  const phone = order.phone || "";
+  const eventDate = order.eventDate || "";
+  const drinks = order.drinks || "";
+  const cart = order.cart || "";
+  const net = order.net || 0;
+
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td>${index + 1}</td>
+    <td>${name}</td>
+    <td>${phone}</td>
+    <td>${eventDate}</td>
+    <td>${drinks}</td>
+    <td>${cart}</td>
+    <td>${net}</td>
+    <td>
+      <button class="btn done" onclick="markDone(${index})">تم</button>
+      <button class="btn delete" onclick="deleteOrder(${index})">حذف</button>
+    </td>
+  `;
+  body.appendChild(tr);
+});
+
+// تم الخدمة
 function markDone(i){
   orders[i].status = "تم";
   localStorage.setItem("orders", JSON.stringify(orders));
-  location.href = "completed.html";
+  location.reload();
 }
 
+// حذف
 function deleteOrder(i){
   if(confirm("هل أنت متأكد من حذف الطلب؟")){
     orders.splice(i,1);
     localStorage.setItem("orders", JSON.stringify(orders));
     location.reload();
   }
-}
-
-function editOrder(i){
-  localStorage.setItem("editIndex", i);
-  location.href = "add.html";
 }
 </script>
 
