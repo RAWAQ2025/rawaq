@@ -54,14 +54,15 @@ a{
 </div>
 
 <script>
-let orders = JSON.parse(localStorage.getItem("doneOrders")) || [];
+let orders = JSON.parse(localStorage.getItem("orders") || "[]");
 
 let today = new Date();
 let dayTotal = 0, weekTotal = 0, monthTotal = 0, yearTotal = 0;
 
 orders.forEach(o => {
-  let d = new Date(o.date);
+  if(o.status !== "تم") return; // نحسب المنجز فقط
 
+  let d = new Date(o.eventDate);
   let net = Number(o.net) || 0;
 
   // اليوم
@@ -69,9 +70,9 @@ orders.forEach(o => {
     dayTotal += net;
   }
 
-  // الأسبوع
+  // الأسبوع (آخر 7 أيام)
   let diffDays = (today - d) / (1000*60*60*24);
-  if (diffDays <= 7) {
+  if (diffDays >= 0 && diffDays <= 7) {
     weekTotal += net;
   }
 
@@ -84,6 +85,13 @@ orders.forEach(o => {
   if (d.getFullYear() === today.getFullYear()) {
     yearTotal += net;
   }
+});
+
+document.getElementById("day").innerText   = "مبيعات اليوم: " + dayTotal;
+document.getElementById("week").innerText  = "مبيعات الأسبوع: " + weekTotal;
+document.getElementById("month").innerText = "مبيعات الشهر: " + monthTotal;
+document.getElementById("year").innerText  = "مبيعات السنة: " + yearTotal;
+</script>
 });
 
 document.getElementById("day").innerText   = "مبيعات اليوم: " + dayTotal;
