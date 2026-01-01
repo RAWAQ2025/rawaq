@@ -3,49 +3,50 @@
 <head>
   <meta charset="UTF-8">
   <title>الطلبات المنجزة | رواق</title>
+
   <style>
-    body {
+    body{
       font-family: Tahoma, Arial;
-      background: #f7f7f7;
-      padding: 20px;
+      background:#f7f7f7;
+      padding:20px;
     }
-    h2 {
-      color: #4b1d5a;
-      text-align: center;
-      margin-bottom: 20px;
+    h2{
+      color:#4b1d5a;
+      text-align:center;
+      margin-bottom:20px;
     }
-    .box {
-      background: #fff;
-      padding: 15px;
-      border-radius: 10px;
-      margin-bottom: 15px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      line-height: 1.8;
+    .box{
+      background:#fff;
+      padding:15px;
+      border-radius:10px;
+      margin-bottom:15px;
+      box-shadow:0 2px 5px rgba(0,0,0,0.1);
+      line-height:1.8;
     }
-    .box strong {
-      font-size: 16px;
-      color: #4b1d5a;
+    .box strong{
+      color:#4b1d5a;
+      font-size:16px;
     }
-    button {
-      margin-top: 10px;
-      padding: 8px 15px;
-      background: #4b1d5a;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
+    button{
+      margin-top:10px;
+      padding:8px 15px;
+      background:#4b1d5a;
+      color:#fff;
+      border:none;
+      border-radius:6px;
+      cursor:pointer;
+      font-size:14px;
     }
-    a {
-      display: inline-block;
-      margin-top: 20px;
-      color: #4b1d5a;
-      text-decoration: none;
-      font-weight: bold;
+    a{
+      display:inline-block;
+      margin-top:20px;
+      color:#4b1d5a;
+      text-decoration:none;
+      font-weight:bold;
     }
-    .empty {
-      text-align: center;
-      color: #777;
+    .empty{
+      text-align:center;
+      color:#777;
     }
   </style>
 </head>
@@ -59,19 +60,21 @@
 <a href="index.html">⬅ الرجوع إلى الصفحة الرئيسية</a>
 
 <script>
-/* ===== عرض الطلبات المنجزة ===== */
-const completed = JSON.parse(localStorage.getItem("completedOrders")) || [];
+/* ===== نجيب الطلبات المنجزة من orders ===== */
+const allOrders = JSON.parse(localStorage.getItem("orders")) || [];
+const completed = allOrders.filter(o => o.status === "تم");
+
 const container = document.getElementById("completedOrders");
 
-if (completed.length === 0) {
+if(completed.length === 0){
   container.innerHTML = '<p class="empty">لا توجد طلبات منجزة حالياً</p>';
-} else {
+}else{
   completed.forEach((order, index) => {
     container.innerHTML += `
       <div class="box">
         <strong>${index + 1}. ${order.name}</strong><br>
         رقم الجوال: ${order.phone}<br>
-        تاريخ المناسبة: ${order.date}<br>
+        تاريخ المناسبة: ${order.eventDate}<br>
         العربة: ${order.cart}<br>
         المشروبات: ${(order.drinks || []).join(" ، ")}<br>
         العربون: ${order.deposit}<br>
@@ -87,13 +90,11 @@ if (completed.length === 0) {
 
 /* ===== دالة الفاتورة ===== */
 function openInvoice(index){
-  let completed = JSON.parse(localStorage.getItem("completedOrders")) || [];
-  let o = completed[index];
+  const o = completed[index];
+  const invoiceNo = index + 1;
+  const today = new Date().toLocaleDateString("ar-SA");
 
-  let invoiceNo = index + 1;
-  let today = new Date().toLocaleDateString("ar-SA");
-
-  let win = window.open("", "_blank");
+  const win = window.open("", "_blank");
 
   win.document.write(`
 <!DOCTYPE html>
@@ -103,7 +104,7 @@ function openInvoice(index){
 <title>فاتورة رواق</title>
 <style>
 body{
-  font-family: Tahoma;
+  font-family:Tahoma;
   background:#f3f3f3;
   margin:0;
 }
@@ -187,7 +188,7 @@ button{
     <tr><th>البيان</th><th>التفاصيل</th></tr>
     <tr><td>اسم العميل</td><td>${o.name}</td></tr>
     <tr><td>رقم الجوال</td><td>${o.phone}</td></tr>
-    <tr><td>تاريخ المناسبة</td><td>${o.date}</td></tr>
+    <tr><td>تاريخ المناسبة</td><td>${o.eventDate}</td></tr>
     <tr><td>العربة</td><td>${o.cart}</td></tr>
     <tr><td>المشروبات</td><td>${(o.drinks||[]).join(" ، ")}</td></tr>
 
