@@ -6,26 +6,20 @@
 
 <style>
 body{
-  font-family: Tahoma, Arial;
+  font-family:Tahoma;
   background:#f7f7f7;
   padding:20px;
 }
 h2{
   color:#4b1d5a;
   text-align:center;
-  margin-bottom:20px;
 }
 .box{
   background:#fff;
   padding:15px;
   border-radius:10px;
   margin-bottom:15px;
-  box-shadow:0 2px 5px rgba(0,0,0,0.1);
-  line-height:1.8;
-}
-.box strong{
-  color:#4b1d5a;
-  font-size:16px;
+  box-shadow:0 2px 5px rgba(0,0,0,.1);
 }
 button{
   margin-top:10px;
@@ -35,18 +29,52 @@ button{
   border:none;
   border-radius:6px;
   cursor:pointer;
-  font-size:14px;
 }
 a{
-  display:inline-block;
+  display:block;
   margin-top:20px;
-  color:#4b1d5a;
-  text-decoration:none;
-  font-weight:bold;
-}
-.empty{
   text-align:center;
-  color:#777;
+  color:#4b1d5a;
+  font-weight:bold;
+  text-decoration:none;
+}
+
+/* ===== الفاتورة ===== */
+#invoice{
+  display:none;
+  background:#fff;
+  padding:20px;
+  border-radius:12px;
+}
+.header{
+  text-align:center;
+  border-bottom:2px solid #4b1d5a;
+  padding-bottom:10px;
+}
+.meta{
+  display:flex;
+  justify-content:space-between;
+  margin:15px 0;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+th,td{
+  border:1px solid #ddd;
+  padding:10px;
+  text-align:center;
+}
+th{
+  background:#4b1d5a;
+  color:#fff;
+}
+.total{background:#f6eef8;font-weight:bold}
+.net{background:#4b1d5a;color:#fff;font-size:18px}
+@media print{
+  body *{visibility:hidden}
+  #invoice, #invoice *{visibility:visible}
+  #invoice{position:absolute;top:0;left:0;width:100%}
 }
 </style>
 </head>
@@ -54,172 +82,79 @@ a{
 <body>
 
 <h2>الطلبات التي تم إنجازها</h2>
-
 <div id="completedOrders"></div>
 
-<a href="index.html">⬅ الرجوع إلى الصفحة الرئيسية</a>
+<a href="index.html">⬅ الرجوع للرئيسية</a>
+
+<hr>
+
+<!-- ===== الفاتورة ===== -->
+<div id="invoice"></div>
 
 <script>
-/* ===== جلب الطلبات المنجزة ===== */
 const orders = JSON.parse(localStorage.getItem("orders")) || [];
 const completed = orders.filter(o => o.status === "تم");
-const container = document.getElementById("completedOrders");
+const list = document.getElementById("completedOrders");
+const invoiceDiv = document.getElementById("invoice");
 
 if(completed.length === 0){
-  container.innerHTML = '<p class="empty">لا توجد طلبات منجزة حالياً</p>';
+  list.innerHTML = "<p>لا توجد طلبات منجزة</p>";
 }else{
-  completed.forEach((o, i) => {
-    container.innerHTML += `
+  completed.forEach((o,i)=>{
+    list.innerHTML += `
       <div class="box">
-        <strong>${i + 1}. ${o.name}</strong><br>
-        رقم الجوال: ${o.phone}<br>
+        <strong>${i+1}. ${o.name}</strong><br>
+        الجوال: ${o.phone}<br>
         تاريخ المناسبة: ${o.eventDate}<br>
-        العربة: ${o.cart}<br>
-        المشروبات: ${(o.drinks || []).join(" ، ")}<br>
-        العربون: ${o.deposit}<br>
-        التأمين: ${o.insurance}<br>
-        الخصم: ${o.discount}<br>
-        <strong>الصافي: ${o.net}</strong><br>
-
-        <button onclick="openInvoice(${i})">🧾 فاتورة</button>
+        الصافي: ${o.net}<br>
+        <button onclick="showInvoice(${i})">🧾 فاتورة</button>
       </div>
     `;
   });
 }
 
-/* ===== دالة الفاتورة (مضمونة) ===== */
-function openInvoice(i){
-
-  const orders = JSON.parse(localStorage.getItem("orders")) || [];
-  const completed = orders.filter(o => o.status === "تم");
+function showInvoice(i){
   const o = completed[i];
+  if(!o){ alert("خطأ في البيانات"); return; }
 
-  if(!o){
-    alert("❌ لم يتم العثور على بيانات الطلب");
-    return;
-  }
-
-  let invoiceNo = Number(localStorage.getItem("invoiceNo") || 0) + 1;
-  localStorage.setItem("invoiceNo", invoiceNo);
-
+  let no = Number(localStorage.getItem("invoiceNo")||0)+1;
+  localStorage.setItem("invoiceNo",no);
   const today = new Date().toLocaleDateString("ar-SA");
-  const w = window.open("", "_blank");
 
-  w.document.write(`
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<title>فاتورة رواق</title>
+  invoiceDiv.style.display="block";
+  invoiceDiv.innerHTML = `
+    <div class="header">
+      <!-- لو عندك شعار -->
+      <!-- <img src="logo.png" style="max-width:120px"><br> -->
+      <h2>فاتورة رواق</h2>
+      <div>إدارة الحجوزات</div>
+    </div>
 
-<style>
-body{
-  font-family:Tahoma;
-  background:#f3f3f3;
-  margin:0;
-}
-.invoice{
-  max-width:720px;
-  margin:30px auto;
-  background:#fff;
-  padding:25px;
-  border-radius:12px;
-}
-.header{
-  text-align:center;
-  border-bottom:2px solid #4b1d5a;
-  padding-bottom:15px;
-}
-.header h1{
-  margin:0;
-  color:#4b1d5a;
-}
-.meta{
-  display:flex;
-  justify-content:space-between;
-  margin:15px 0;
-  font-size:14px;
-}
-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:20px;
-}
-th, td{
-  padding:10px;
-  border:1px solid #ddd;
-  text-align:center;
-}
-th{
-  background:#4b1d5a;
-  color:#fff;
-}
-.total{
-  background:#f6eef8;
-  font-weight:bold;
-}
-.net{
-  background:#4b1d5a;
-  color:#fff;
-  font-size:18px;
-}
-.footer{
-  margin-top:25px;
-  text-align:center;
-}
-button{
-  padding:12px 25px;
-  background:#4b1d5a;
-  color:#fff;
-  border:none;
-  border-radius:8px;
-  font-size:16px;
-}
-@media print{
-  button{display:none;}
-}
-</style>
-</head>
+    <div class="meta">
+      <div>رقم الفاتورة: ${no}</div>
+      <div>التاريخ: ${today}</div>
+    </div>
 
-<body>
-<div class="invoice">
+    <table>
+      <tr><th>البيان</th><th>التفاصيل</th></tr>
+      <tr><td>اسم العميل</td><td>${o.name}</td></tr>
+      <tr><td>رقم الجوال</td><td>${o.phone}</td></tr>
+      <tr><td>تاريخ المناسبة</td><td>${o.eventDate}</td></tr>
+      <tr><td>العربة</td><td>${o.cart}</td></tr>
+      <tr><td>المشروبات</td><td>${(o.drinks||[]).join(" ، ")}</td></tr>
 
-<div class="header">
-  <!-- لو عندك شعار -->
-  <!-- <img src="logo.png" style="max-width:120px"><br> -->
-  <h1>فاتورة رواق</h1>
-  <div>إدارة الحجوزات</div>
-</div>
+      <tr class="total"><td>إجمالي الفاتورة</td><td>${o.total}</td></tr>
+      <tr class="total"><td>الخصم</td><td>${o.discount}</td></tr>
+      <tr class="total"><td>العربون</td><td>${o.deposit}</td></tr>
+      <tr class="total"><td>التأمين</td><td>${o.insurance}</td></tr>
+      <tr class="net"><td>الصافي</td><td>${o.net}</td></tr>
+    </table>
 
-<div class="meta">
-  <div>رقم الفاتورة: ${invoiceNo}</div>
-  <div>التاريخ: ${today}</div>
-</div>
+    <br>
+    <button onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
+  `;
 
-<table>
-<tr><th>البيان</th><th>التفاصيل</th></tr>
-<tr><td>اسم العميل</td><td>${o.name}</td></tr>
-<tr><td>رقم الجوال</td><td>${o.phone}</td></tr>
-<tr><td>تاريخ المناسبة</td><td>${o.eventDate}</td></tr>
-<tr><td>العربة</td><td>${o.cart}</td></tr>
-<tr><td>المشروبات</td><td>${(o.drinks||[]).join(" ، ")}</td></tr>
-
-<tr class="total"><td>إجمالي الفاتورة</td><td>${o.total}</td></tr>
-<tr class="total"><td>الخصم</td><td>${o.discount}</td></tr>
-<tr class="total"><td>العربون</td><td>${o.deposit}</td></tr>
-<tr class="total"><td>التأمين</td><td>${o.insurance}</td></tr>
-
-<tr class="net"><td>الصافي</td><td>${o.net}</td></tr>
-</table>
-
-<div class="footer">
-  <button onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
-</div>
-
-</div>
-</body>
-</html>
-`);
+  invoiceDiv.scrollIntoView({behavior:"smooth"});
 }
 </script>
 
