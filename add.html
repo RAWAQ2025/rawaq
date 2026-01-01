@@ -41,7 +41,6 @@ li{ display:flex; justify-content:space-between; }
 <body>
 
 <script>
-// 🔐 حماية الصفحة
 if(!sessionStorage.getItem("loggedIn")){
   location.href="login.html";
 }
@@ -113,7 +112,6 @@ if(!sessionStorage.getItem("loggedIn")){
 </div>
 
 <script>
-// 🔗 رابط Google Apps Script
 const SHEET_URL = "https://script.google.com/macros/s/AKfycbwIh5xVrmfePd_t2h29cNyZSHmnw_ZX7RD6Wih1xXZ4kfkRUtC7d-BOX5Fgs_ENNm9c/exec";
 
 let drinks=[];
@@ -162,12 +160,10 @@ function saveOrder(){
     status: "جديد"
   };
 
-  /* ✅ 1) حفظ الطلب محليًا */
   const orders = JSON.parse(localStorage.getItem("orders") || "[]");
   orders.push(order);
   localStorage.setItem("orders", JSON.stringify(orders));
 
-  /* ✅ 2) إرساله لقوقل */
   fetch(SHEET_URL,{
     method:"POST",
     mode:"no-cors",
@@ -175,9 +171,7 @@ function saveOrder(){
     body: JSON.stringify(order)
   });
 
-  /* ✅ 3) الانتقال لعرض الطلبات */
-  alert("تم حفظ الطلب بنجاح ✅");
-  location.href = "orders.html"; // عدلي الاسم إذا صفحتك مختلفة
+  location.href = "orders.html";
 }
 </script>
 
