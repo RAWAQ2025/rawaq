@@ -5,72 +5,19 @@
 <title>إدارة الحجوزات</title>
 
 <style>
-body {
-  font-family: Arial;
-  background: #f5f5f5;
-  padding: 20px;
-}
-
-h2 {
-  text-align: center;
-}
-
-form, table {
-  background: white;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-}
-
-label {
-  font-weight: bold;
-  display: block;
-  margin-top: 10px;
-}
-
-input, select, button {
-  width: 100%;
-  padding: 8px;
-  margin-top: 5px;
-}
-
-button {
-  background: #2563eb;
-  color: white;
-  border: none;
-  cursor: pointer;
-  margin-top: 10px;
-}
-
-#drinkList span {
-  background: #ddd;
-  padding: 5px 8px;
-  border-radius: 4px;
-  margin: 3px;
-  display: inline-block;
-  cursor: pointer;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-}
-
-th, td {
-  border: 1px solid #ccc;
-  padding: 6px;
-  text-align: center;
-}
-
-th {
-  background: #eee;
-}
-
-.red { background: #fca5a5; }
-.yellow { background: #fde68a; }
-.green { background: #bbf7d0; }
-.done { opacity: 0.5; text-decoration: line-through; }
+body { font-family: Arial; background:#f5f5f5; padding:20px; }
+form, table { background:#fff; padding:15px; border-radius:8px; margin-bottom:20px; }
+label { font-weight:bold; display:block; margin-top:10px; }
+input, select, button { width:100%; padding:8px; margin-top:5px; }
+button { background:#2563eb; color:white; border:none; cursor:pointer; }
+#drinkList span { background:#ddd; padding:5px 8px; border-radius:4px; margin:3px; display:inline-block; cursor:pointer; }
+table { width:100%; border-collapse:collapse; font-size:14px; }
+th, td { border:1px solid #ccc; padding:6px; text-align:center; }
+th { background:#eee; }
+.red { background:#fca5a5; }
+.yellow { background:#fde68a; }
+.green { background:#bbf7d0; }
+.done { opacity:.5; text-decoration:line-through; }
 </style>
 </head>
 
@@ -78,7 +25,7 @@ th {
 
 <h2>إدارة الحجوزات</h2>
 
-<form id="form">
+<form id="bookingForm">
 
 <label>اسم العميل</label>
 <input id="name" required>
@@ -106,7 +53,7 @@ th {
   <option>معمول</option>
 </select>
 
-<button type="button" onclick="addDrink()">➕ إضافة مشروب</button>
+<button type="button" id="addDrinkBtn">➕ إضافة مشروب</button>
 <div id="drinkList"></div>
 
 <label>العربة</label>
@@ -156,68 +103,69 @@ th {
 </table>
 
 <script>
-let bookings = [];
-let drinks = [];
+const form = document.getElementById("bookingForm");
+const drinkSelect = document.getElementById("drinkSelect");
+const drinkList = document.getElementById("drinkList");
+const addDrinkBtn = document.getElementById("addDrinkBtn");
+const tbody = document.getElementById("tbody");
 
-function addDrink() {
+let drinks = [];
+let bookings = [];
+
+addDrinkBtn.onclick = () => {
   if (!drinkSelect.value) return;
   drinks.push(drinkSelect.value);
   renderDrinks();
   drinkSelect.value = "";
-}
+};
 
 function renderDrinks() {
   drinkList.innerHTML = "";
   drinks.forEach((d,i)=>{
-    drinkList.innerHTML += <span onclick="removeDrink(${i})">${d} ✖</span>;
+    const span = document.createElement("span");
+    span.textContent = d + " ✖";
+    span.onclick = ()=>{ drinks.splice(i,1); renderDrinks(); };
+    drinkList.appendChild(span);
   });
-}
-
-function removeDrink(i){
-  drinks.splice(i,1);
-  renderDrinks();
 }
 
 function rowColor(date){
   const diff = Math.ceil((new Date(date)-new Date())/86400000);
-  if(diff <= 2) return "red";
-  if(diff <= 5) return "yellow";
+  if(diff<=2) return "red";
+  if(diff<=5) return "yellow";
   return "green";
 }
 
 form.onsubmit = e => {
   e.preventDefault();
+  if (drinks.length === 0) return alert("اختر مشروب واحد على الأقل");
 
-  if(drinks.length === 0){
-    alert("اختر مشروب واحد على الأقل");
-    return;
-  }
+  const eventDate = document.getElementById("eventDate").value;
+  const cart = document.getElementById("cart").value;
 
-  if(bookings.find(b => b.eventDate === eventDate.value && b.cart === cart.value)){
-    alert("⚠️ العربة محجوزة في هذا التاريخ");
-    return;
-  }
+  if (bookings.find(b=>b.eventDate===eventDate && b.cart===cart))
+    return alert("⚠️ العربة محجوزة في هذا التاريخ");
 
-  const finalTotal = total.value - discount.value;
+  const total = +document.getElementById("total").value;
+  const discount = +document.getElementById("discount").value;
 
   bookings.push({
     name: name.value,
     phone: phone.value,
     bookingDate: bookingDate.value,
-    eventDate: eventDate.value,
-    cart: cart.value,
+    eventDate,
+    cart,
     drinks: drinks.join("، "),
-    total: total.value,
-    discount: discount.value,
-    finalTotal,
+    total,
+    discount,
+    finalTotal: total-discount,
     deposit: deposit.value,
     insurance: insurance.value,
-    done: false
+    done:false
   });
 
   bookings.sort((a,b)=>new Date(a.eventDate)-new Date(b.eventDate));
   renderTable();
-
   form.reset();
   drinks=[];
   renderDrinks();
@@ -226,7 +174,7 @@ form.onsubmit = e => {
 function renderTable(){
   tbody.innerHTML="";
   bookings.forEach((b,i)=>{
-    tbody.innerHTML += `
+    tbody.innerHTML+=`
     <tr class="${rowColor(b.eventDate)} ${b.done?'done':''}">
       <td>${b.name}</td>
       <td>${b.phone}</td>
@@ -239,21 +187,15 @@ function renderTable(){
       <td>${b.finalTotal}</td>
       <td>${b.deposit}</td>
       <td>${b.insurance}</td>
-      <td><input type="checkbox" onchange="toggleDone(${i})"></td>
+      <td><input type="checkbox" onchange="bookings[${i}].done=!bookings[${i}].done;renderTable()"></td>
       <td><button onclick="printRow(this)">🖨️</button></td>
     </tr>`;
   });
 }
 
-function toggleDone(i){
-  bookings[i].done = !bookings[i].done;
-  renderTable();
-}
-
 function printRow(btn){
-  const row = btn.closest("tr").outerHTML;
-  const win = window.open("");
-  win.document.write("<table border='1'>"+row+"</table>");
+  const win=window.open("");
+  win.document.write("<table border='1'>"+btn.closest("tr").outerHTML+"</table>");
   win.print();
 }
 </script>
