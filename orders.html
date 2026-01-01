@@ -91,7 +91,11 @@ orders.forEach((order, index)=>{
         <button class="btn done" onclick="markDone(${index})">تم</button>
         <button class="btn edit" onclick="editOrder(${index})">تعديل</button>
         <button class="btn delete" onclick="deleteOrder(${index})">حذف</button>
-      </td>`;
+      </td
+      <td>
+  <button onclick="openInvoice(${index})">🧾 فاتورة</button>
+</td>
+      ` ;
     body.appendChild(tr);
   }
 });
