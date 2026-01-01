@@ -3,41 +3,58 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>تسجيل طلب - رواق</title>
+<title>تسجيل طلب جديد - رواق</title>
 
 <style>
-body{font-family:Tahoma;background:#f4f1f6;margin:0;}
-.container{max-width:600px;margin:30px auto;background:#fff;padding:20px;border-radius:12px;}
-h2{text-align:center;color:#4b1f5c;}
-label{display:block;margin-top:12px;font-weight:bold;}
-input,select{width:100%;padding:10px;margin-top:6px;border-radius:8px;border:1px solid #ccc;}
-button{width:100%;margin-top:12px;padding:12px;border:none;border-radius:10px;font-size:16px;cursor:pointer;}
-.save{background:#4b1f5c;color:#fff;}
-.cancel{background:#f8d7da;color:#721c24;}
-.back{background:#ddd;color:#4b1f5c;}
-ul{padding-right:20px;}
-li{display:flex;justify-content:space-between;}
-.remove{background:none;border:none;color:red;}
-.net{background:#eee;padding:10px;border-radius:8px;margin-top:10px;}
+body{
+  font-family:Tahoma;
+  background:#f4f1f6;
+  margin:0;
+}
+.container{
+  max-width:600px;
+  margin:30px auto;
+  background:#fff;
+  padding:20px;
+  border-radius:12px;
+}
+h2{ text-align:center; color:#4b1f5c; }
+label{ display:block; margin-top:12px; font-weight:bold; }
+input,select{
+  width:100%; padding:10px; margin-top:6px;
+  border-radius:8px; border:1px solid #ccc;
+}
+button{
+  width:100%; margin-top:12px; padding:12px;
+  border:none; border-radius:10px;
+  font-size:16px; cursor:pointer;
+}
+.save{ background:#4b1f5c; color:#fff; }
+.back{ background:#ddd; color:#4b1f5c; }
+ul{ padding-right:20px; }
+li{ display:flex; justify-content:space-between; }
+.remove{ background:none; border:none; color:red; }
+.net{ background:#eee; padding:10px; border-radius:8px; margin-top:10px; }
 </style>
 </head>
 
 <body>
 
 <script>
+// 🔐 حماية الصفحة
 if(!sessionStorage.getItem("loggedIn")){
   location.href="login.html";
 }
 </script>
 
 <div class="container">
-<h2 id="title">تسجيل طلب جديد</h2>
+<h2>تسجيل طلب جديد</h2>
 
 <label>اسم العميل</label>
-<input id="name">
+<input id="name" placeholder="اكتب اسم العميل">
 
 <label>رقم الجوال</label>
-<input id="phone">
+<input id="phone" placeholder="05xxxxxxxx">
 
 <label>تاريخ الحجز</label>
 <input type="date" id="bookingDate">
@@ -87,91 +104,84 @@ if(!sessionStorage.getItem("loggedIn")){
 <label>الخصم</label>
 <input type="number" id="discount" value="0" oninput="calc()">
 
-<div class="net">الصافي: <strong id="net">0</strong></div>
+<div class="net">
+الصافي: <strong id="net">0</strong>
+</div>
 
-<button class="save" onclick="saveOrder()">حفظ</button>
-<button class="cancel" id="cancelBtn" onclick="cancelEdit()" style="display:none;">إلغاء التعديل</button>
-<button class="back" onclick="location.href='orders.html'">العودة</button>
+<button class="save" onclick="saveOrder()">حفظ الطلب</button>
+<button class="back" onclick="location.href='index.html'">العودة</button>
 </div>
 
 <script>
+// 🔗 رابط Google Apps Script (كما هو)
 const SHEET_URL = "https://script.google.com/macros/s/AKfycbwIh5xVrmfePd_t2h29cNyZSHmnw_ZX7RD6Wih1xXZ4kfkRUtC7d-BOX5Fgs_ENNm9c/exec";
 
-let orders = JSON.parse(localStorage.getItem("orders")||"[]");
-let editIndex = localStorage.getItem("editIndex");
-let drinks=[];
-
-// وضع التعديل
-if(editIndex!==null){
-  const o = orders[editIndex];
-  title.textContent="تعديل الطلب";
-  cancelBtn.style.display="block";
-
-  name.value=o.name||"";
-  phone.value=o.phone||"";
-  bookingDate.value=o.bookingDate||"";
-  eventDate.value=o.eventDate||"";
-  cart.value=o.cart||"";
-  insurance.value=o.insurance||0;
-  deposit.value=o.deposit||0;
-  total.value=o.total||0;
-  discount.value=o.discount||0;
-  net.textContent=o.net||0;
-
-  if(o.drinks){
-    drinks = typeof o.drinks==="string" ? o.drinks.split("، ") : o.drinks;
-    render();
-  }
-}
+let drinks = [];
 
 function addDrink(){
   if(!drinkSelect.value) return;
   drinks.push(drinkSelect.value);
   render();
+  drinkSelect.value="";
 }
+
 function render(){
   drinkList.innerHTML="";
   drinks.forEach((d,i)=>{
-    drinkList.innerHTML+=`<li>${d}<button class="remove" onclick="del(${i})">✖</button></li>`;
+    drinkList.innerHTML += `
+      <li>${d}
+        <button class="remove" onclick="del(${i})">✖</button>
+      </li>`;
   });
 }
-function del(i){drinks.splice(i,1);render();}
-function calc(){
-  net.textContent=Math.max((+total.value||0)-(+discount.value||0)-(+deposit.value||0),0);
+
+function del(i){
+  drinks.splice(i,1);
+  render();
 }
-function cancelEdit(){
-  localStorage.removeItem("editIndex");
-  location.href="orders.html";
+
+function calc(){
+  const t = Number(total.value) || 0;
+  const d = Number(discount.value) || 0;
+  const a = Number(deposit.value) || 0;
+  net.textContent = Math.max(t - d - a, 0);
 }
 
 function saveOrder(){
-  const order={
-    name:name.value||"",
-    phone:phone.value||"",
-    bookingDate:bookingDate.value,
-    eventDate:eventDate.value,
-    drinks:drinks.join("، "),
-    cart:cart.value,
-    insurance:insurance.value,
-    deposit:deposit.value,
-    discount:discount.value,
-    total:total.value,
-    net:net.textContent,
-    status:"جديد"
+
+  const customerName = name.value.trim();   // ✅ الاسم محفوظ صح
+  const customerPhone = phone.value.trim();
+
+  const order = {
+    name: customerName,
+    phone: customerPhone,
+    bookingDate: bookingDate.value,
+    eventDate: eventDate.value,
+    drinks: drinks.join("، "),
+    cart: cart.value,
+    insurance: insurance.value,
+    deposit: deposit.value,
+    discount: discount.value,
+    total: total.value,
+    net: net.textContent,
+    status: "جديد"
   };
 
-  if(editIndex!==null){
-    orders[editIndex]=order;
-    localStorage.removeItem("editIndex");
-  }else{
-    orders.push(order);
-  }
+  // 1️⃣ حفظ محلي (هذا اللي تعتمد عليه صفحة الطلبات)
+  const orders = JSON.parse(localStorage.getItem("orders") || "[]");
+  orders.push(order);
+  localStorage.setItem("orders", JSON.stringify(orders));
 
-  localStorage.setItem("orders",JSON.stringify(orders));
+  // 2️⃣ إرسال لقوقل (بدون ما يأثر)
+  fetch(SHEET_URL,{
+    method:"POST",
+    mode:"no-cors",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify(order)
+  });
 
-  fetch(SHEET_URL,{method:"POST",mode:"no-cors",body:JSON.stringify(order)});
-  alert("تم الحفظ بنجاح ✅");
-  location.href="orders.html";
+  alert("تم حفظ الطلب بنجاح ✅");
+  location.href = "orders.html";
 }
 </script>
 
