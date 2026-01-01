@@ -1,20 +1,33 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
 <meta charset="UTF-8">
-<title>رواق | إدارة الحجوزات</title>
+<title>نظام إدارة الحجوزات - رواڨ</title>
 
 <style>
 body {
-  font-family: Arial, sans-serif;
-  background: #f5f5f5;
+  font-family: Tahoma, Arial;
+  background: #f2f4f8;
+  direction: rtl;
   margin: 0;
+  padding: 0;
 }
 
-.hidden { display: none; }
+/* ألوان النظام */
+:root {
+  --blue: #1e3cff;
+  --green: #2ecc71;
+  --orange: #f39c12;
+}
 
-/* ===== تسجيل الدخول ===== */
-#login {
+.container {
+  max-width: 1100px;
+  margin: auto;
+  padding: 20px;
+}
+
+/* ===== شاشة الدخول ===== */
+#loginScreen {
   height: 100vh;
   display: flex;
   align-items: center;
@@ -23,295 +36,170 @@ body {
 
 .login-box {
   background: white;
-  padding: 25px;
-  border-radius: 8px;
+  padding: 30px;
   width: 300px;
   text-align: center;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.1);
 }
 
-.login-box input, .login-box button {
+.login-box input {
   width: 100%;
   padding: 10px;
-  margin-top: 10px;
+  margin: 15px 0;
 }
 
 .login-box button {
-  background: #2563eb;
+  width: 100%;
+  padding: 10px;
+  background: var(--blue);
   color: white;
   border: none;
+  cursor: pointer;
 }
 
-/* ===== التطبيق ===== */
-.container {
-  max-width: 1200px;
-  background: white;
-  margin: 20px auto;
-  padding: 20px;
-  border-radius: 8px;
+/* ===== النظام ===== */
+#system {
+  display: none;
 }
 
-h1 { text-align: center; }
-
-label {
-  font-weight: bold;
-  display: block;
-  margin-top: 10px;
+h2 {
+  margin-top: 0;
 }
 
-input, select, button {
-  width: 100%;
+form input, form select {
   padding: 8px;
-  margin-top: 5px;
+  margin: 5px;
 }
 
 button {
-  background: #2563eb;
-  color: white;
-  border: none;
-  cursor: pointer;
-  margin-top: 15px;
-}
-
-/* ===== المشروبات ===== */
-.drinks-box {
-  background: #eee;
-  padding: 10px;
-  border-radius: 5px;
-  margin-top: 10px;
-}
-
-.drinks-box span {
-  display: inline-block;
-  background: #ddd;
-  padding: 5px 8px;
-  border-radius: 4px;
-  margin: 3px;
+  padding: 8px 15px;
   cursor: pointer;
 }
 
-/* ===== الجدول ===== */
+/* جدول */
 table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
-  font-size: 14px;
 }
 
 th, td {
   border: 1px solid #ccc;
-  padding: 6px;
+  padding: 8px;
   text-align: center;
 }
 
-th { background: #eee; }
-
-.red { background: #fca5a5; }
-.yellow { background: #fde68a; }
-.green { background: #bbf7d0; }
+th {
+  background: #eee;
+}
 </style>
 </head>
 
 <body>
 
-<!-- تسجيل الدخول -->
-<div id="login">
+<!-- شاشة الدخول -->
+<div id="loginScreen">
   <div class="login-box">
     <h3>الدخول للنظام</h3>
-    <input type="password" id="password">
+    <input type="password" id="password" placeholder="كلمة المرور">
     <button onclick="login()">دخول</button>
   </div>
 </div>
 
-<!-- التطبيق -->
-<div id="app" class="hidden">
-<div class="container">
+<!-- النظام -->
+<div id="system" class="container">
 
-<h1>إدارة حجوزات رواق</h1>
+<h2>إدارة الحجوزات</h2>
 
-<form id="form">
+<form id="bookingForm">
+  <input required placeholder="اسم العميل" id="name">
+  <input required placeholder="رقم الجوال" id="phone">
+  <input type="date" required id="eventDate">
 
-<label>اسم العميل</label>
-<input id="name" required>
+  <select id="cart">
+    <option value="">العربة</option>
+    <option>كبيرة</option>
+    <option>وسط</option>
+    <option>صغيرة</option>
+    <option>وسط + صغيرة</option>
+  </select>
 
-<label>رقم الجوال</label>
-<input id="phone" required>
+  <input type="number" placeholder="الإجمالي" id="total">
+  <input type="number" placeholder="الخصم" id="discount">
+  <input type="number" placeholder="العربون" id="deposit">
+  <input type="number" placeholder="التأمين" id="insurance">
 
-<label>تاريخ الحجز</label>
-<input type="date" id="bookingDate" required>
-
-<label>تاريخ المناسبة</label>
-<input type="date" id="eventDate" required>
-
-<label>المشروبات</label>
-<select id="drinkSelect">
-  <option value="">اختر مشروب</option>
-  <option>هوت شوكلت</option>
-  <option>سحلب</option>
-  <option>كرك</option>
-  <option>كاسترد</option>
-  <option>قهوة اللوز</option>
-  <option>قهوة عربية</option>
-  <option>شاهي أحمر</option>
-  <option>تمر محشي</option>
-  <option>معمول</option>
-</select>
-
-<button type="button" onclick="addDrink()">+ إضافة مشروب</button>
-
-<div class="drinks-box" id="drinksBox"></div>
-
-<label>العربة</label>
-<select id="cart" required>
-  <option value="">اختر العربة</option>
-  <option>كبيرة</option>
-  <option>وسط</option>
-  <option>صغيرة</option>
-  <option>وسط وصغيرة</option>
-</select>
-
-<label>إجمالي الفاتورة</label>
-<input type="number" id="total" required>
-
-<label>الخصم</label>
-<input type="number" id="discount" value="0">
-
-<label>العربون</label>
-<input type="number" id="deposit" value="0">
-
-<label>التأمين</label>
-<input type="number" id="insurance" value="0">
-
-<button type="submit">تأكيد الحجز</button>
-
+  <button type="submit">إضافة الحجز</button>
 </form>
 
 <table>
-<thead>
-<tr>
-<th>العميل</th>
-<th>الجوال</th>
-<th>تاريخ الحجز</th>
-<th>تاريخ المناسبة</th>
-<th>المشروبات</th>
-<th>العربة</th>
-<th>الإجمالي</th>
-<th>الخصم</th>
-<th>النهائي</th>
-<th>العربون</th>
-<th>التأمين</th>
-</tr>
-</thead>
-<tbody id="tbody"></tbody>
+  <thead>
+    <tr>
+      <th>الاسم</th>
+      <th>الجوال</th>
+      <th>التاريخ</th>
+      <th>العربة</th>
+      <th>الإجمالي</th>
+      <th>الخصم</th>
+      <th>الصافي</th>
+      <th>العربون</th>
+      <th>التأمين</th>
+    </tr>
+  </thead>
+  <tbody id="tableBody"></tbody>
 </table>
 
 </div>
-</div>
 
 <script>
-/* ===== كلمة المرور ===== */
-const PASSWORD = "6699";
+/* كلمة المرور */
+const PASSWORD = "1234";
 
-/* ===== تسجيل الدخول ===== */
+/* تسجيل الدخول */
 function login() {
-  if (document.getElementById("password").value === PASSWORD) {
-    login.style.display = "none";
-    app.classList.remove("hidden");
+  const pass = document.getElementById("password").value;
+
+  if (pass === PASSWORD) {
+    document.getElementById("loginScreen").style.display = "none";
+    document.getElementById("system").style.display = "block";
   } else {
-    alert("كلمة المرور خطأ");
+    alert("كلمة المرور غير صحيحة");
   }
 }
 
-/* ===== البيانات ===== */
-let bookings = [];
-let drinks = [];
-
-/* ===== المشروبات ===== */
-function addDrink() {
-  const d = drinkSelect.value;
-  if (!d) return;
-  drinks.push(d);
-  renderDrinks();
-  drinkSelect.value = "";
-}
-
-function renderDrinks() {
-  drinksBox.innerHTML = "";
-  drinks.forEach((d, i) => {
-    drinksBox.innerHTML += <span onclick="removeDrink(${i})">${d} ✖</span>;
-  });
-}
-
-function removeDrink(i) {
-  drinks.splice(i, 1);
-  renderDrinks();
-}
-
-/* ===== الألوان ===== */
-function colorByDate(date) {
-  const diff = Math.ceil((new Date(date) - new Date()) / 86400000);
-  if (diff <= 2) return "red";
-  if (diff <= 5) return "yellow";
-  return "green";
-}
-
-/* ===== إضافة الحجز ===== */
-form.onsubmit = e => {
+/* إضافة حجز */
+document.getElementById("bookingForm").addEventListener("submit", function(e) {
   e.preventDefault();
 
-  if (drinks.length === 0) {
-    alert("اختر مشروب واحد على الأقل");
-    return;
-  }
+  const name = nameInput.value = document.getElementById("name").value;
+  const phone = document.getElementById("phone").value;
+  const date = document.getElementById("eventDate").value;
+  const cart = document.getElementById("cart").value;
+  const total = Number(document.getElementById("total").value || 0);
+  const discount = Number(document.getElementById("discount").value || 0);
+  const deposit = Number(document.getElementById("deposit").value || 0);
+  const insurance = Number(document.getElementById("insurance").value || 0);
 
-  if (bookings.find(b => b.eventDate === eventDate.value && b.cart === cart.value)) {
-    alert("⚠️ العربة محجوزة في هذا التاريخ");
-    return;
-  }
+  const net = total - discount;
 
-  const finalTotal = total.value - discount.value;
+  const row = `
+    <tr>
+      <td>${name}</td>
+      <td>${phone}</td>
+      <td>${date}</td>
+      <td>${cart}</td>
+      <td>${total}</td>
+      <td>${discount}</td>
+      <td>${net}</td>
+      <td>${deposit}</td>
+      <td>${insurance}</td>
+    </tr>
+  `;
 
-  bookings.push({
-    name: name.value,
-    phone: phone.value,
-    bookingDate: bookingDate.value,
-    eventDate: eventDate.value,
-    drinks: drinks.join("، "),
-    cart: cart.value,
-    total: total.value,
-    discount: discount.value,
-    finalTotal,
-    deposit: deposit.value,
-    insurance: insurance.value
-  });
-
-  bookings.sort((a,b)=>new Date(a.eventDate)-new Date(b.eventDate));
-  renderTable();
-
-  form.reset();
-  drinks=[];
-  renderDrinks();
-};
-
-/* ===== رسم الجدول ===== */
-function renderTable() {
-  tbody.innerHTML="";
-  bookings.forEach(b=>{
-    tbody.innerHTML+=`
-    <tr class="${colorByDate(b.eventDate)}">
-      <td>${b.name}</td>
-      <td>${b.phone}</td>
-      <td>${b.bookingDate}</td>
-      <td>${b.eventDate}</td>
-      <td>${b.drinks}</td>
-      <td>${b.cart}</td>
-      <td>${b.total}</td>
-      <td>${b.discount}</td>
-      <td>${b.finalTotal}</td>
-      <td>${b.deposit}</td>
-      <td>${b.insurance}</td>
-    </tr>`;
-  });
-}
+  document.getElementById("tableBody").innerHTML += row;
+  this.reset();
+});
 </script>
 
 </body>
