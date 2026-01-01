@@ -155,15 +155,15 @@ ul li{
 <div class="drink-box">
   <select id="drinkSelect">
     <option value="">اختر المشروب</option>
-    <option value="hot">هوت شوكلت</option>
-    <option value="sahlab">سحلب</option>
-    <option value="karak">كرك</option>
-    <option value="custard">كاسترد</option>
-    <option value="almond">قهوة اللوز</option>
-    <option value="arabic">قهوة عربية</option>
-    <option value="tea">شاهي أحمر</option>
-    <option value="dates">تمر محشي</option>
-    <option value="maamoul">معمول</option>
+    <option>هوت شوكلت</option>
+    <option>سحلب</option>
+    <option>كرك</option>
+    <option>كاسترد</option>
+    <option>قهوة اللوز</option>
+    <option>قهوة عربية</option>
+    <option>شاهي أحمر</option>
+    <option>تمر محشي</option>
+    <option>معمول</option>
   </select>
   <button class="add-btn" onclick="addDrink()">+</button>
 </div>
@@ -171,28 +171,27 @@ ul li{
 <ul id="drinkList"></ul>
 
 <label>العربة</label>
-<select id="cart" onchange="updateTotals()">
-  <option value="0">اختر العربة</option>
-  <option value="300">كبيرة</option>
-  <option value="200">وسط</option>
-  <option value="150">صغيرة</option>
-  <option value="350">وسط + صغيرة</option>
+<select id="cart">
+  <option value="">اختر العربة</option>
+  <option>كبيرة</option>
+  <option>وسط</option>
+  <option>صغيرة</option>
+  <option>وسط + صغيرة</option>
 </select>
 
 <label>التأمين</label>
 <input type="number" id="insurance" value="0">
 
 <label>العربون</label>
-<input type="number" id="deposit" value="0" oninput="updateTotals()">
+<input type="number" id="deposit" value="0" oninput="updateNet()">
 
-<label>إجمالي الفاتورة (تعديل يدوي)</label>
-<input type="number" id="manualTotal" value="0" oninput="updateTotals()">
+<label>إجمالي الفاتورة</label>
+<input type="number" id="totalInput" value="0" oninput="updateNet()">
 
 <label>الخصم</label>
-<input type="number" id="discount" value="0" oninput="updateTotals()">
+<input type="number" id="discount" value="0" oninput="updateNet()">
 
 <div class="total-box">
-  <div>إجمالي الفاتورة: <strong id="total">0</strong></div>
   <div>الصافي: <strong id="net">0</strong></div>
 </div>
 
@@ -203,25 +202,15 @@ ul li{
 </div>
 
 <script>
-const drinkPrices={
-  hot:10,sahlab:12,karak:8,custard:9,
-  almond:15,arabic:10,tea:6,dates:7,maamoul:8
-};
-
 let drinks=[];
 
 function addDrink(){
   const select=document.getElementById("drinkSelect");
-  const key=select.value;
-  if(!key) return;
+  const name=select.value;
+  if(!name) return;
 
-  drinks.push({
-    name:select.options[select.selectedIndex].text,
-    price:drinkPrices[key]
-  });
-
+  drinks.push(name);
   renderDrinks();
-  updateTotals();
   select.value="";
 }
 
@@ -230,7 +219,7 @@ function renderDrinks(){
   list.innerHTML="";
   drinks.forEach((d,i)=>{
     const li=document.createElement("li");
-    li.innerHTML=`<span>${d.name}</span>
+    li.innerHTML=`<span>${d}</span>
     <button class="remove" onclick="removeDrink(${i})">✖</button>`;
     list.appendChild(li);
   });
@@ -239,20 +228,13 @@ function renderDrinks(){
 function removeDrink(i){
   drinks.splice(i,1);
   renderDrinks();
-  updateTotals();
 }
 
-function updateTotals(){
-  const cart=Number(document.getElementById("cart").value||0);
-  const discount=Number(document.getElementById("discount").value||0);
-  const deposit=Number(document.getElementById("deposit").value||0);
-  const manual=Number(document.getElementById("manualTotal").value||0);
-
-  const drinksSum=drinks.reduce((s,d)=>s+d.price,0);
-  const total=cart+drinksSum+manual;
+function updateNet(){
+  const total=Number(totalInput.value||0);
+  const discount=Number(discount.value||0);
+  const deposit=Number(deposit.value||0);
   const net=total-discount-deposit;
-
-  document.getElementById("total").textContent=total;
   document.getElementById("net").textContent=net<0?0:net;
 }
 
@@ -263,13 +245,12 @@ function saveOrder(){
     bookingDate:bookingDate.value,
     eventDate:eventDate.value,
     drinks:drinks,
-    cart:cart.options[cart.selectedIndex].text,
+    cart:cart.value,
     insurance:insurance.value,
     deposit:deposit.value,
-    manualTotal:manualTotal.value,
+    total:totalInput.value,
     discount:discount.value,
-    total:Number(total.textContent),
-    net:Number(net.textContent),
+    net:net.textContent,
     status:"جديد"
   };
 
