@@ -101,7 +101,7 @@ if(!hasOrders) emptyMsg.style.display="block";
 function markDone(i){
   orders[i].status = "تم";
   localStorage.setItem("orders", JSON.stringify(orders));
-  location.reload();
+  window.location.href = "completed.html";
 }
 function deleteOrder(i){
   if(confirm("هل أنت متأكد من حذف الطلب؟")){
