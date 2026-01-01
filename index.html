@@ -6,135 +6,135 @@
 
 <style>
 body {
-    font-family: Arial, sans-serif;
-    background: #f5f5f5;
-    margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f5f5f5;
+  margin: 0;
 }
 
-/* ===== شاشة كلمة المرور ===== */
-#loginScreen {
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.hidden { display: none; }
+
+/* ===== تسجيل الدخول ===== */
+#login {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .login-box {
-    background: white;
-    padding: 30px;
-    border-radius: 8px;
-    width: 300px;
-    text-align: center;
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  width: 300px;
+  text-align: center;
 }
 
 .login-box input, .login-box button {
-    width: 100%;
-    padding: 10px;
-    margin-top: 10px;
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
 }
 
 .login-box button {
-    background: #3b82f6;
-    color: white;
-    border: none;
-    cursor: pointer;
+  background: #2563eb;
+  color: white;
+  border: none;
 }
 
 /* ===== التطبيق ===== */
-#app {
-    display: none;
-    padding: 20px;
-}
-
 .container {
-    max-width: 1000px;
-    background: white;
-    margin: auto;
-    padding: 20px;
-    border-radius: 8px;
+  max-width: 1200px;
+  background: white;
+  margin: 20px auto;
+  padding: 20px;
+  border-radius: 8px;
 }
 
-h1 {
-    text-align: center;
-}
+h1 { text-align: center; }
 
 label {
-    display: block;
-    margin-top: 10px;
-    font-weight: bold;
+  font-weight: bold;
+  display: block;
+  margin-top: 10px;
 }
 
 input, select, button {
-    width: 100%;
-    padding: 8px;
-    margin-top: 5px;
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
 }
 
 button {
-    background: #2563eb;
-    color: white;
-    border: none;
-    cursor: pointer;
-    margin-top: 15px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  cursor: pointer;
+  margin-top: 15px;
+}
+
+/* ===== المشروبات ===== */
+.drinks-box {
+  background: #eee;
+  padding: 10px;
+  border-radius: 5px;
+  margin-top: 10px;
+}
+
+.drinks-box span {
+  display: inline-block;
+  background: #ddd;
+  padding: 5px 8px;
+  border-radius: 4px;
+  margin: 3px;
+  cursor: pointer;
 }
 
 /* ===== الجدول ===== */
 table {
-    width: 100%;
-    margin-top: 20px;
-    border-collapse: collapse;
-    font-size: 14px;
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  font-size: 14px;
 }
 
 th, td {
-    border: 1px solid #ccc;
-    padding: 8px;
-    text-align: center;
+  border: 1px solid #ccc;
+  padding: 6px;
+  text-align: center;
 }
 
-th {
-    background: #eee;
-}
+th { background: #eee; }
 
-/* ===== الألوان ===== */
-.red {
-    background: #fca5a5;
-}
-
-.yellow {
-    background: #fde68a;
-}
-
-.green {
-    background: #bbf7d0;
-}
+.red { background: #fca5a5; }
+.yellow { background: #fde68a; }
+.green { background: #bbf7d0; }
 </style>
 </head>
 
 <body>
 
-<!-- ===== شاشة كلمة المرور ===== -->
-<div id="loginScreen">
-    <div class="login-box">
-        <h3>الدخول للنظام</h3>
-        <input type="password" id="passwordInput" placeholder="كلمة المرور">
-        <button onclick="login()">دخول</button>
-    </div>
+<!-- تسجيل الدخول -->
+<div id="login">
+  <div class="login-box">
+    <h3>الدخول للنظام</h3>
+    <input type="password" id="password">
+    <button onclick="login()">دخول</button>
+  </div>
 </div>
 
-<!-- ===== التطبيق ===== -->
-<div id="app">
+<!-- التطبيق -->
+<div id="app" class="hidden">
 <div class="container">
 
 <h1>إدارة حجوزات رواق</h1>
 
-<form id="bookingForm">
+<form id="form">
 
 <label>اسم العميل</label>
-<input type="text" id="name" required>
+<input id="name" required>
 
 <label>رقم الجوال</label>
-<input type="tel" id="phone" required>
+<input id="phone" required>
 
 <label>تاريخ الحجز</label>
 <input type="date" id="bookingDate" required>
@@ -142,13 +142,31 @@ th {
 <label>تاريخ المناسبة</label>
 <input type="date" id="eventDate" required>
 
+<label>المشروبات</label>
+<select id="drinkSelect">
+  <option value="">اختر مشروب</option>
+  <option>هوت شوكلت</option>
+  <option>سحلب</option>
+  <option>كرك</option>
+  <option>كاسترد</option>
+  <option>قهوة اللوز</option>
+  <option>قهوة عربية</option>
+  <option>شاهي أحمر</option>
+  <option>تمر محشي</option>
+  <option>معمول</option>
+</select>
+
+<button type="button" onclick="addDrink()">+ إضافة مشروب</button>
+
+<div class="drinks-box" id="drinksBox"></div>
+
 <label>العربة</label>
 <select id="cart" required>
-    <option value="">اختر العربة</option>
-    <option value="كبيرة">كبيرة</option>
-    <option value="وسط">وسط</option>
-    <option value="صغيرة">صغيرة</option>
-    <option value="وسط وصغيرة">وسط وصغيرة</option>
+  <option value="">اختر العربة</option>
+  <option>كبيرة</option>
+  <option>وسط</option>
+  <option>صغيرة</option>
+  <option>وسط وصغيرة</option>
 </select>
 
 <label>إجمالي الفاتورة</label>
@@ -172,90 +190,127 @@ th {
 <tr>
 <th>العميل</th>
 <th>الجوال</th>
+<th>تاريخ الحجز</th>
 <th>تاريخ المناسبة</th>
+<th>المشروبات</th>
 <th>العربة</th>
-<th>الإجمالي النهائي</th>
+<th>الإجمالي</th>
+<th>الخصم</th>
+<th>النهائي</th>
+<th>العربون</th>
+<th>التأمين</th>
 </tr>
 </thead>
-<tbody id="tableBody"></tbody>
+<tbody id="tbody"></tbody>
 </table>
 
 </div>
 </div>
 
 <script>
-/* ===== كلمة المرور (غيّرها هنا) ===== */
-const SYSTEM_PASSWORD = "1234";
+/* ===== كلمة المرور ===== */
+const PASSWORD = "1234";
 
 /* ===== تسجيل الدخول ===== */
 function login() {
-    const input = document.getElementById("passwordInput").value;
-    if (input === SYSTEM_PASSWORD) {
-        document.getElementById("loginScreen").style.display = "none";
-        document.getElementById("app").style.display = "block";
-    } else {
-        alert("❌ كلمة المرور غير صحيحة");
-    }
+  if (document.getElementById("password").value === PASSWORD) {
+    login.style.display = "none";
+    app.classList.remove("hidden");
+  } else {
+    alert("كلمة المرور خطأ");
+  }
 }
 
-/* ===== الحجوزات ===== */
+/* ===== البيانات ===== */
 let bookings = [];
+let drinks = [];
 
-document.getElementById("bookingForm").addEventListener("submit", function(e) {
-    e.preventDefault();
-
-    const name = document.getElementById("name").value;
-    const phone = document.getElementById("phone").value;
-    const eventDate = document.getElementById("eventDate").value;
-    const cart = document.getElementById("cart").value;
-    const total = Number(document.getElementById("total").value);
-    const discount = Number(document.getElementById("discount").value);
-
-    /* تحذير حجز العربة */
-    const conflict = bookings.find(b => b.eventDate === eventDate && b.cart === cart);
-    if (conflict) {
-        alert("⚠️ هذه العربة محجوزة في نفس تاريخ المناسبة");
-        return;
-    }
-
-    const finalTotal = total - discount;
-
-    bookings.push({ name, phone, eventDate, cart, finalTotal });
-
-    bookings.sort((a, b) => new Date(a.eventDate) - new Date(b.eventDate));
-
-    renderTable();
-    this.reset();
-    alert("✅ تم تسجيل الحجز");
-});
-
-/* ===== تلوين الصفوف ===== */
-function getRowColor(dateStr) {
-    const today = new Date();
-    const eventDate = new Date(dateStr);
-    const diffDays = Math.ceil((eventDate - today) / (1000 * 60 * 60 * 24));
-
-    if (diffDays <= 2) return "red";
-    if (diffDays <= 5) return "yellow";
-    return "green";
+/* ===== المشروبات ===== */
+function addDrink() {
+  const d = drinkSelect.value;
+  if (!d) return;
+  drinks.push(d);
+  renderDrinks();
+  drinkSelect.value = "";
 }
 
-function renderTable() {
-    const tbody = document.getElementById("tableBody");
-    tbody.innerHTML = "";
+function renderDrinks() {
+  drinksBox.innerHTML = "";
+  drinks.forEach((d, i) => {
+    drinksBox.innerHTML += <span onclick="removeDrink(${i})">${d} ✖</span>;
+  });
+}
 
-    bookings.forEach(b => {
-        const colorClass = getRowColor(b.eventDate);
-        tbody.innerHTML += `
-        <tr class="${colorClass}">
-            <td>${b.name}</td>
-            <td>${b.phone}</td>
-            <td>${b.eventDate}</td>
-            <td>${b.cart}</td>
-            <td>${b.finalTotal}</td>
-        </tr>
-        `;
-    });
+function removeDrink(i) {
+  drinks.splice(i, 1);
+  renderDrinks();
+}
+
+/* ===== الألوان ===== */
+function colorByDate(date) {
+  const diff = Math.ceil((new Date(date) - new Date()) / 86400000);
+  if (diff <= 2) return "red";
+  if (diff <= 5) return "yellow";
+  return "green";
+}
+
+/* ===== إضافة الحجز ===== */
+form.onsubmit = e => {
+  e.preventDefault();
+
+  if (drinks.length === 0) {
+    alert("اختر مشروب واحد على الأقل");
+    return;
+  }
+
+  if (bookings.find(b => b.eventDate === eventDate.value && b.cart === cart.value)) {
+    alert("⚠️ العربة محجوزة في هذا التاريخ");
+    return;
+  }
+
+  const finalTotal = total.value - discount.value;
+
+  bookings.push({
+    name: name.value,
+    phone: phone.value,
+    bookingDate: bookingDate.value,
+    eventDate: eventDate.value,
+    drinks: drinks.join("، "),
+    cart: cart.value,
+    total: total.value,
+    discount: discount.value,
+    finalTotal,
+    deposit: deposit.value,
+    insurance: insurance.value
+  });
+
+  bookings.sort((a,b)=>new Date(a.eventDate)-new Date(b.eventDate));
+  renderTable();
+
+  form.reset();
+  drinks=[];
+  renderDrinks();
+};
+
+/* ===== رسم الجدول ===== */
+function renderTable() {
+  tbody.innerHTML="";
+  bookings.forEach(b=>{
+    tbody.innerHTML+=`
+    <tr class="${colorByDate(b.eventDate)}">
+      <td>${b.name}</td>
+      <td>${b.phone}</td>
+      <td>${b.bookingDate}</td>
+      <td>${b.eventDate}</td>
+      <td>${b.drinks}</td>
+      <td>${b.cart}</td>
+      <td>${b.total}</td>
+      <td>${b.discount}</td>
+      <td>${b.finalTotal}</td>
+      <td>${b.deposit}</td>
+      <td>${b.insurance}</td>
+    </tr>`;
+  });
 }
 </script>
 
