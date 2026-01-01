@@ -52,6 +52,28 @@ th{
   color:#fff;
 }
 
+details summary{
+  cursor:pointer;
+  color:var(--purple);
+  font-weight:bold;
+}
+
+details ul{
+  padding-right:18px;
+  margin:6px 0 0;
+  text-align:right;
+}
+
+.money-box{
+  line-height:1.6;
+  font-size:13px;
+}
+
+.client-box{
+  line-height:1.6;
+  font-size:13px;
+}
+
 .btn{
   border:none;
   padding:5px 8px;
@@ -92,11 +114,11 @@ th{
 <table>
 <thead>
 <tr>
+  <th>#</th>
   <th>العميل</th>
-  <th>الجوال</th>
-  <th>المناسبة</th>
+  <th>تاريخ المناسبة</th>
   <th>المشروبات</th>
-  <th>العربة</th>
+  <th>العربون / التأمين</th>
   <th>الصافي</th>
   <th>إجراءات</th>
 </tr>
@@ -121,6 +143,7 @@ orders.sort((a,b)=> new Date(a.eventDate) - new Date(b.eventDate));
 
 let today = new Date();
 let hasOrders = false;
+let counter = 1;
 
 orders.forEach((order, index)=>{
   if(order.status === "جديد"){
@@ -134,15 +157,30 @@ orders.forEach((order, index)=>{
     else if(diffDays <= 5) color = "var(--yellow)";
     else color = "var(--green)";
 
+    const drinksList = order.drinks
+      .map(d => `<li>${d}</li>`)
+      .join("");
+
     const tr = document.createElement("tr");
     tr.style.background = color;
 
     tr.innerHTML = `
-      <td>${order.name}</td>
-      <td>${order.phone}</td>
+      <td><strong>${counter++}</strong></td>
+      <td class="client-box">
+        ${order.name}<br>
+        ${order.phone}
+      </td>
       <td>${order.eventDate}</td>
-      <td>${order.drinks.join(" ، ")}</td>
-      <td>${order.cart}</td>
+      <td>
+        <details>
+          <summary>عرض</summary>
+          <ul>${drinksList}</ul>
+        </details>
+      </td>
+      <td class="money-box">
+        عربون: ${order.deposit}<br>
+        تأمين: ${order.insurance}
+      </td>
       <td>${order.net}</td>
       <td>
         <button class="btn done" onclick="markDone(${index})">تم</button>
