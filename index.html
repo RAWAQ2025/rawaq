@@ -13,8 +13,8 @@ body {
 
 .hidden { display:none; }
 
-/* ===== تسجيل الدخول ===== */
-#login {
+/* شاشة الدخول */
+#loginScreen {
   height:100vh;
   display:flex;
   align-items:center;
@@ -41,7 +41,7 @@ body {
   border:none;
 }
 
-/* ===== النظام ===== */
+/* النظام */
 .container {
   max-width:1200px;
   background:white;
@@ -70,7 +70,7 @@ button {
   margin-top:15px;
 }
 
-/* ===== مشروبات ===== */
+/* مشروبات */
 #drinkList span {
   background:#ddd;
   padding:5px 8px;
@@ -80,7 +80,7 @@ button {
   cursor:pointer;
 }
 
-/* ===== جدول ===== */
+/* جدول */
 table {
   width:100%;
   border-collapse:collapse;
@@ -96,7 +96,7 @@ th, td {
 
 th { background:#eee; }
 
-/* ===== ألوان ===== */
+/* ألوان */
 .red { background:#fca5a5; }
 .yellow { background:#fde68a; }
 .green { background:#bbf7d0; }
@@ -105,12 +105,12 @@ th { background:#eee; }
 
 <body>
 
-<!-- تسجيل الدخول -->
-<div id="login">
+<!-- شاشة الدخول -->
+<div id="loginScreen">
   <div class="login-box">
     <h3>الدخول للنظام</h3>
     <input type="password" id="password" placeholder="كلمة المرور">
-    <button onclick="login()">دخول</button>
+    <button onclick="doLogin()">دخول</button>
   </div>
 </div>
 
@@ -199,26 +199,20 @@ th { background:#eee; }
 </div>
 
 <script>
-/* ===== كلمة المرور ===== */
 const PASSWORD = "1234";
 
-/* ===== دخول ===== */
-function login() {
+function doLogin() {
   if (password.value === PASSWORD) {
-    loginDiv.style.display="none";
-    app.classList.remove("hidden");
+    document.getElementById("loginScreen").style.display = "none";
+    document.getElementById("app").classList.remove("hidden");
   } else {
     alert("كلمة المرور غير صحيحة");
   }
 }
 
-const loginDiv = document.getElementById("login");
-
-/* ===== بيانات ===== */
 let bookings = [];
 let drinks = [];
 
-/* ===== مشروبات ===== */
 function addDrink() {
   if (!drinkSelect.value) return;
   drinks.push(drinkSelect.value);
@@ -238,7 +232,6 @@ function removeDrink(i){
   renderDrinks();
 }
 
-/* ===== ألوان ===== */
 function rowColor(date){
   const diff=Math.ceil((new Date(date)-new Date())/86400000);
   if(diff<=2) return "red";
@@ -246,7 +239,6 @@ function rowColor(date){
   return "green";
 }
 
-/* ===== إضافة حجز ===== */
 form.onsubmit=e=>{
   e.preventDefault();
 
@@ -284,7 +276,6 @@ form.onsubmit=e=>{
   renderDrinks();
 };
 
-/* ===== رسم الجدول ===== */
 function renderTable(){
   tbody.innerHTML="";
   bookings.forEach(b=>{
