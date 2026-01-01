@@ -64,11 +64,7 @@ details ul{
   text-align:right;
 }
 
-.money-box{
-  line-height:1.6;
-  font-size:13px;
-}
-
+.money-box,
 .client-box{
   line-height:1.6;
   font-size:13px;
@@ -118,6 +114,7 @@ details ul{
   <th>العميل</th>
   <th>تاريخ المناسبة</th>
   <th>المشروبات</th>
+  <th>العربة</th>
   <th>العربون / التأمين</th>
   <th>الصافي</th>
   <th>إجراءات</th>
@@ -177,6 +174,7 @@ orders.forEach((order, index)=>{
           <ul>${drinksList}</ul>
         </details>
       </td>
+      <td>${order.cart}</td>
       <td class="money-box">
         عربون: ${order.deposit}<br>
         تأمين: ${order.insurance}
