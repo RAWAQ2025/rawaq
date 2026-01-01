@@ -170,7 +170,7 @@ function saveOrder(){
   /* ✅ 2) إرساله لقوقل */
   fetch(SHEET_URL,{
     method:"POST",
-    
+    mode:"no-cors",
     headers:{ "Content-Type":"application/json" },
     body: JSON.stringify(order)
   });
