@@ -2,26 +2,32 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>المبيعات</title>
+<title>المبيعات | رواق</title>
+
 <style>
 body{
   font-family: Tahoma;
   background:#f5f5f5;
 }
 .box{
-  max-width:500px;
+  max-width:420px;
   margin:40px auto;
   background:#fff;
   padding:20px;
   border-radius:12px;
   text-align:center;
 }
+h2{
+  color:#5a1f5f;
+  margin-bottom:20px;
+}
 .card{
   background:#5a1f5f;
   color:#fff;
-  padding:12px;
+  padding:14px;
   margin:10px 0;
   border-radius:8px;
+  font-size:16px;
 }
 a{
   display:block;
@@ -53,24 +59,25 @@ let today = new Date();
 let dayTotal = 0, weekTotal = 0, monthTotal = 0, yearTotal = 0;
 
 orders.forEach(o => {
-  if (o.status !== "تم") return;
+  if (o.status !== "تم") return; // 🔴 فقط المنجزة
 
   let d = new Date(o.eventDate);
-  let net = Number(o.netTotal || 0);
+  let net = Number(o.net || 0);
 
   // اليوم
   if (d.toDateString() === today.toDateString()) {
     dayTotal += net;
   }
 
-  // الأسبوع (آخر 7 أيام)
-  let diffDays = (today - d) / (1000*60*60*24);
+  // الأسبوع (7 أيام)
+  let diffDays = (today - d) / (1000 * 60 * 60 * 24);
   if (diffDays >= 0 && diffDays <= 7) {
     weekTotal += net;
   }
 
   // الشهر
-  if (d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear()) {
+  if (d.getMonth() === today.getMonth() &&
+      d.getFullYear() === today.getFullYear()) {
     monthTotal += net;
   }
 
@@ -80,10 +87,10 @@ orders.forEach(o => {
   }
 });
 
-document.getElementById("day").innerText   = "مبيعات اليوم: " + dayTotal;
+document.getElementById("day").innerText   = "مبيعات اليوم: "   + dayTotal;
 document.getElementById("week").innerText  = "مبيعات الأسبوع: " + weekTotal;
-document.getElementById("month").innerText = "مبيعات الشهر: " + monthTotal;
-document.getElementById("year").innerText  = "مبيعات السنة: " + yearTotal;
+document.getElementById("month").innerText = "مبيعات الشهر: "   + monthTotal;
+document.getElementById("year").innerText  = "مبيعات السنة: "   + yearTotal;
 </script>
 
 </body>
