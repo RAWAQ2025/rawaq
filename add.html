@@ -184,7 +184,9 @@ ul li{
 </div>
 
 <script>
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbwvVoy69UT6uCzHdUjLYomzYBMIFZeeEL_ipU8sqV-xd-txf7WSK-bdXjssu4hRVZ2x/exec"; // ← حط رابط Google Script هنا
+/* 🔗 رابط Google Sheets API (جاهز) */
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbwvVoy69UT6uCzHdUjLYomzYBMIFZeeEL_ipU8sqV-xd-txf7WSK-bdXjssu4hRVZ2x/exec";
+
 let drinks=[];
 
 function addDrink(){
@@ -212,10 +214,10 @@ function removeDrink(i){
 }
 
 function updateNet(){
-  const total=+totalInput.value||0;
-  const discount=+discountInput.value||0;
-  const deposit=+depositInput.value||0;
-  net.textContent=Math.max(total-discount-deposit,0);
+  const total = +totalInput.value || 0;
+  const discount = +discountInput.value || 0;
+  const deposit = +depositInput.value || 0;
+  net.textContent = Math.max(total - discount - deposit, 0);
 }
 
 function saveOrder(){
@@ -230,22 +232,27 @@ function saveOrder(){
     deposit:depositInput.value,
     total:totalInput.value,
     discount:discountInput.value,
-    net:net.textContent
+    net:net.textContent,
+    status:"جديد"
   };
 
-  // 🔹 حفظ محلي (اختياري)
+  /* حفظ محلي (اختياري) */
   const local=JSON.parse(localStorage.getItem("orders")||"[]");
   local.push(order);
   localStorage.setItem("orders",JSON.stringify(local));
 
-  // 🔹 إرسال لـ Google Sheets
+  /* إرسال إلى Google Sheets */
   fetch(SHEET_URL,{
     method:"POST",
+    headers:{ "Content-Type":"application/json" },
     body:JSON.stringify(order)
-  });
-
-  successMsg.style.display="block";
-  setTimeout(()=>successMsg.style.display="none",2000);
+  })
+  .then(r=>r.text())
+  .then(()=>{
+    successMsg.style.display="block";
+    setTimeout(()=>successMsg.style.display="none",2000);
+  })
+  .catch(()=>alert("حصل خطأ في الإرسال"));
 }
 </script>
 
