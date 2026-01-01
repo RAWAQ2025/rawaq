@@ -64,14 +64,12 @@ ul{
 ul li{
   display:flex;
   justify-content:space-between;
-  align-items:center;
   margin-bottom:5px;
 }
 .remove{
   background:none;
   border:none;
   color:#b00020;
-  font-size:16px;
   cursor:pointer;
 }
 .total-box{
@@ -80,28 +78,18 @@ ul li{
   border-radius:8px;
   margin-top:12px;
 }
-.save-btn{
+.save-btn, .back-btn, .pass-btn{
   width:100%;
-  margin-top:20px;
+  margin-top:12px;
   padding:12px;
   font-size:16px;
-  background:var(--purple);
-  color:#fff;
   border:none;
   border-radius:10px;
   cursor:pointer;
 }
-.back-btn{
-  width:100%;
-  margin-top:10px;
-  padding:12px;
-  font-size:16px;
-  background:#ddd;
-  color:var(--purple);
-  border:none;
-  border-radius:10px;
-  cursor:pointer;
-}
+.save-btn{ background:var(--purple); color:#fff; }
+.back-btn{ background:#ddd; color:var(--purple); }
+.pass-btn{ background:#222; color:#fff; }
 .success{
   display:none;
   text-align:center;
@@ -140,12 +128,8 @@ ul li{
     <option>هوت شوكلت</option>
     <option>سحلب</option>
     <option>كرك</option>
-    <option>كاسترد</option>
     <option>قهوة اللوز</option>
     <option>قهوة عربية</option>
-    <option>شاهي أحمر</option>
-    <option>تمر محشي</option>
-    <option>معمول</option>
   </select>
   <button class="add-btn" onclick="addDrink()">+</button>
 </div>
@@ -154,11 +138,10 @@ ul li{
 
 <label>العربة</label>
 <select id="cart">
-  <option value="">اختر العربة</option>
+  <option value="">اختر</option>
   <option>كبيرة</option>
   <option>وسط</option>
   <option>صغيرة</option>
-  <option>وسط + صغيرة</option>
 </select>
 
 <label>التأمين</label>
@@ -174,20 +157,20 @@ ul li{
 <input type="number" id="discountInput" value="0" oninput="updateNet()">
 
 <div class="total-box">
-  <div>الصافي: <strong id="net">0</strong></div>
+الصافي: <strong id="net">0</strong>
 </div>
 
 <button class="save-btn" onclick="saveOrder()">حفظ الطلب</button>
-<button class="back-btn" onclick="location.href='index.html'">العودة</button>
+<button class="pass-btn" onclick="changePassword()">تغيير كلمة السر</button>
+<button class="back-btn" onclick="logout()">تسجيل الخروج</button>
 
-<div class="success" id="successMsg">تم تسجيل الطلب وإرساله ✅</div>
+<div class="success" id="successMsg">تم تسجيل الطلب بنجاح ✅</div>
 </div>
 
 <script>
-const SHEET_URL =
-"https://script.google.com/macros/s/AKfycbwvVoy69UT6uCzHdUjLYomzYBMIFZeeEL_ipU8sqV-xd-txf7WSK-bdXjssu4hRVZ2x/exec";
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbwvVoy69UT6uCzHdUjLYomzYBMIFZeeEL_ipU8sqV-xd-txf7WSK-bdXjssu4hRVZ2x/exec";
 
-let drinks=[];
+let drinks = [];
 
 function addDrink(){
   if(!drinkSelect.value) return;
@@ -199,7 +182,7 @@ function addDrink(){
 function renderDrinks(){
   drinkList.innerHTML="";
   drinks.forEach((d,i)=>{
-    drinkList.innerHTML+=`
+    drinkList.innerHTML += `
       <li>${d}
         <button class="remove" onclick="removeDrink(${i})">✖</button>
       </li>`;
@@ -212,48 +195,62 @@ function removeDrink(i){
 }
 
 function updateNet(){
-  const total=+totalInput.value||0;
-  const discount=+discountInput.value||0;
-  const deposit=+depositInput.value||0;
-  net.textContent=Math.max(total-discount-deposit,0);
+  net.textContent = Math.max(
+    (+totalInput.value||0) -
+    (+discountInput.value||0) -
+    (+depositInput.value||0)
+  ,0);
 }
 
 function saveOrder(){
-  if(!name.value || !phone.value){
+  const nameEl = document.getElementById("name");
+  const phoneEl = document.getElementById("phone");
+
+  if(!nameEl.value.trim() || !phoneEl.value.trim()){
     alert("الرجاء إدخال اسم العميل ورقم الجوال");
     return;
   }
 
-  const order={
-    name:name.value,
-    phone:phone.value,
-    bookingDate:bookingDate.value,
-    eventDate:eventDate.value,
-    drinks:drinks.join("، "),
-    cart:cart.value,
-    insurance:insurance.value,
-    deposit:depositInput.value,
-    total:totalInput.value,
-    discount:discountInput.value,
-    net:net.textContent,
-    status:"جديد"
+  const order = {
+    name: nameEl.value,
+    phone: phoneEl.value,
+    bookingDate: bookingDate.value,
+    eventDate: eventDate.value,
+    drinks: drinks.join("، "),
+    cart: cart.value,
+    insurance: insurance.value,
+    deposit: depositInput.value,
+    total: totalInput.value,
+    discount: discountInput.value,
+    net: net.textContent,
+    status: "جديد"
   };
 
-  // حفظ محلي
-  const local=JSON.parse(localStorage.getItem("orders")||"[]");
-  local.push(order);
-  localStorage.setItem("orders",JSON.stringify(local));
-
-  // إرسال إلى Google Sheets (بدون CORS مشاكل)
   fetch(SHEET_URL,{
     method:"POST",
-    mode:"no-cors",
     headers:{ "Content-Type":"application/json" },
     body:JSON.stringify(order)
-  });
+  })
+  .then(()=>{
+    successMsg.style.display="block";
+    setTimeout(()=>successMsg.style.display="none",2000);
+  })
+  .catch(()=>alert("حصل خطأ في الإرسال"));
+}
 
-  successMsg.style.display="block";
-  setTimeout(()=>successMsg.style.display="none",2500);
+/* 🔐 تغيير كلمة السر */
+function changePassword(){
+  const newPass = prompt("أدخل كلمة السر الجديدة");
+  if(!newPass) return;
+  localStorage.setItem("password", newPass);
+  alert("تم تغيير كلمة السر، سيتم تسجيل الخروج");
+  logout();
+}
+
+/* 🚪 تسجيل الخروج */
+function logout(){
+  localStorage.removeItem("loggedIn");
+  location.href = "login.html";
 }
 </script>
 
