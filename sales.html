@@ -63,7 +63,7 @@ orders.forEach(o => {
   if(o.status !== "تم") return; // نحسب المنجز فقط
 
   let d = new Date(o.eventDate);
-  let net = Number(o.net) || 0;
+ let net = Number(o.net || o.netTotal || o.total || 0);
 
   // اليوم
   if (d.toDateString() === today.toDateString()) {
