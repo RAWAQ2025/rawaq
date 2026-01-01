@@ -184,13 +184,13 @@ ul li{
 </div>
 
 <script>
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbwvVoy69UT6uCzHdUjLYomzYBMIFZeeEL_ipU8sqV-xd-txf7WSK-bdXjssu4hRVZ2x/exec"; // ← حط رابط Google Script هنا
 let drinks=[];
 
 function addDrink(){
   const select=document.getElementById("drinkSelect");
-  const name=select.value;
-  if(!name) return;
-  drinks.push(name);
+  if(!select.value) return;
+  drinks.push(select.value);
   renderDrinks();
   select.value="";
 }
@@ -199,10 +199,10 @@ function renderDrinks(){
   const list=document.getElementById("drinkList");
   list.innerHTML="";
   drinks.forEach((d,i)=>{
-    const li=document.createElement("li");
-    li.innerHTML=`<span>${d}</span>
-      <button class="remove" onclick="removeDrink(${i})">✖</button>`;
-    list.appendChild(li);
+    list.innerHTML+=`
+      <li>${d}
+        <button class="remove" onclick="removeDrink(${i})">✖</button>
+      </li>`;
   });
 }
 
@@ -212,35 +212,39 @@ function removeDrink(i){
 }
 
 function updateNet(){
-  const total = Number(document.getElementById("totalInput").value || 0);
-  const discount = Number(document.getElementById("discountInput").value || 0);
-  const deposit = Number(document.getElementById("depositInput").value || 0);
-
-  const net = total - discount - deposit;
-  document.getElementById("net").textContent = net < 0 ? 0 : net;
+  const total=+totalInput.value||0;
+  const discount=+discountInput.value||0;
+  const deposit=+depositInput.value||0;
+  net.textContent=Math.max(total-discount-deposit,0);
 }
 
 function saveOrder(){
   const order={
-    name:document.getElementById("name").value,
-    phone:document.getElementById("phone").value,
-    bookingDate:document.getElementById("bookingDate").value,
-    eventDate:document.getElementById("eventDate").value,
-    drinks:drinks,
-    cart:document.getElementById("cart").value,
-    insurance:document.getElementById("insurance").value,
-    deposit:document.getElementById("depositInput").value,
-    total:document.getElementById("totalInput").value,
-    discount:document.getElementById("discountInput").value,
-    net:document.getElementById("net").textContent,
-    status:"جديد"
+    name:name.value,
+    phone:phone.value,
+    bookingDate:bookingDate.value,
+    eventDate:eventDate.value,
+    drinks:drinks.join("، "),
+    cart:cart.value,
+    insurance:insurance.value,
+    deposit:depositInput.value,
+    total:totalInput.value,
+    discount:discountInput.value,
+    net:net.textContent
   };
 
-  const orders=JSON.parse(localStorage.getItem("orders")||"[]");
-  orders.push(order);
-  localStorage.setItem("orders",JSON.stringify(orders));
+  // 🔹 حفظ محلي (اختياري)
+  const local=JSON.parse(localStorage.getItem("orders")||"[]");
+  local.push(order);
+  localStorage.setItem("orders",JSON.stringify(local));
 
-  document.getElementById("successMsg").style.display="block";
+  // 🔹 إرسال لـ Google Sheets
+  fetch(SHEET_URL,{
+    method:"POST",
+    body:JSON.stringify(order)
+  });
+
+  successMsg.style.display="block";
   setTimeout(()=>successMsg.style.display="none",2000);
 }
 </script>
