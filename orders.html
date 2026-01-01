@@ -5,144 +5,68 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>عرض الطلبات - رواق</title>
 
-<script>
-if(!sessionStorage.getItem("loggedIn")){
-  location.replace("login.html");
-}
-</script>
-
 <style>
-:root{
-  --purple:#4b1f5c;
-  --bg:#f4f1f6;
-  --red:#f8d7da;
-  --yellow:#fff3cd;
-  --green:#d4edda;
-}
-body{margin:0;font-family:Tahoma,Arial;background:var(--bg);}
+body{margin:0;font-family:Tahoma;background:#f4f1f6;}
 .container{max-width:95%;margin:20px auto;background:#fff;padding:15px;border-radius:12px;}
-h2{text-align:center;color:var(--purple);}
-table{width:100%;border-collapse:collapse;margin-top:15px;font-size:14px;}
-th,td{border:1px solid #ddd;padding:8px;text-align:center;vertical-align:top;}
-th{background:var(--purple);color:#fff;}
-details summary{cursor:pointer;color:var(--purple);font-weight:bold;}
-details ul{padding-right:18px;margin:6px 0 0;text-align:right;}
-.client-box,.money-box{line-height:1.6;font-size:13px;}
-.btn{border:none;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:12px;margin:2px;}
-.done{background:#4b1f5c;color:#fff;}
+h2{text-align:center;color:#4b1f5c;}
+table{width:100%;border-collapse:collapse;margin-top:15px;}
+th,td{border:1px solid #ddd;padding:8px;text-align:center;}
+th{background:#4b1f5c;color:#fff;}
+.btn{padding:5px 8px;border:none;border-radius:6px;font-size:12px;cursor:pointer;}
+.edit{background:#ffc107;}
 .delete{background:#dc3545;color:#fff;}
-.back-btn{margin-top:15px;width:100%;padding:12px;background:#ddd;color:#4b1f5c;border:none;border-radius:10px;cursor:pointer;}
-.empty{text-align:center;margin-top:20px;color:#777;}
 </style>
 </head>
 
 <body>
-
 <div class="container">
 <h2>عرض الطلبات</h2>
 
 <table>
 <thead>
 <tr>
-  <th>#</th>
-  <th>العميل</th>
-  <th>تاريخ المناسبة</th>
-  <th>المشروبات</th>
-  <th>العربة</th>
-  <th>العربون / التأمين</th>
-  <th>الصافي</th>
-  <th>إجراءات</th>
+<th>#</th>
+<th>العميل</th>
+<th>تاريخ المناسبة</th>
+<th>المشروبات</th>
+<th>الصافي</th>
+<th>إجراءات</th>
 </tr>
 </thead>
 <tbody id="tableBody"></tbody>
 </table>
-
-<div id="emptyMsg" class="empty" style="display:none">لا توجد طلبات</div>
-<button class="back-btn" onclick="location.href='index.html'">العودة</button>
 </div>
 
 <script>
-let orders = JSON.parse(localStorage.getItem("orders") || "[]");
-const body = document.getElementById("tableBody");
-const emptyMsg = document.getElementById("emptyMsg");
+let orders = JSON.parse(localStorage.getItem("orders")||"[]");
+const body=document.getElementById("tableBody");
+let c=1;
 
-orders.sort((a,b)=> new Date(a.eventDate || 0) - new Date(b.eventDate || 0));
-
-let today = new Date();
-let counter = 1;
-let hasOrders = false;
-
-orders.forEach((order, index)=>{
-  if(order.status === "جديد"){
-    hasOrders = true;
-
-    // ✅ الحل هنا: قراءة الاسم من أي مفتاح موجود
-    const clientName =
-      order.name ||
-      order.client ||
-      order.clientName ||
-      order.customer ||
-      "";
-
-    const drinksArray =
-      typeof order.drinks === "string"
-      ? order.drinks.split("،")
-      : (order.drinks || []);
-
-    const drinksList = drinksArray
-      .filter(d => d && d.trim() !== "")
-      .map(d=>`<li>${d}</li>`)
-      .join("");
-
-    const eventDate = new Date(order.eventDate);
-    const diffDays = Math.ceil((eventDate - today)/(1000*60*60*24));
-    let color =
-      diffDays <= 2 ? "var(--red)" :
-      diffDays <= 5 ? "var(--yellow)" :
-      "var(--green)";
-
-    const tr = document.createElement("tr");
-    tr.style.background = color;
-    tr.innerHTML = `
-      <td><strong>${counter++}</strong></td>
-      <td class="client-box">
-        ${clientName}<br>
-        ${order.phone || ""}
-      </td>
-      <td>${order.eventDate || ""}</td>
-      <td>
-        <details>
-          <summary>عرض</summary>
-          <ul>${drinksList}</ul>
-        </details>
-      </td>
-      <td>${order.cart || ""}</td>
-      <td class="money-box">
-        عربون: ${order.deposit || 0}<br>
-        تأمين: ${order.insurance || 0}
-      </td>
-      <td>${order.net || 0}</td>
-      <td>
-        <button class="btn done" onclick="markDone(${index})">تم</button>
-        <button class="btn delete" onclick="deleteOrder(${index})">حذف</button>
-      </td>
-    `;
-    body.appendChild(tr);
+orders.forEach((o,i)=>{
+  if(o.status==="جديد"){
+    body.innerHTML+=`
+      <tr>
+        <td>${c++}</td>
+        <td>${o.name||""}<br>${o.phone||""}</td>
+        <td>${o.eventDate||""}</td>
+        <td>${o.drinks||""}</td>
+        <td>${o.net||0}</td>
+        <td>
+          <button class="btn edit" onclick="editOrder(${i})">تعديل</button>
+          <button class="btn delete" onclick="deleteOrder(${i})">حذف</button>
+        </td>
+      </tr>`;
   }
 });
 
-if(!hasOrders) emptyMsg.style.display="block";
-
-function markDone(i){
-  orders[i].status = "تم";
-  localStorage.setItem("orders", JSON.stringify(orders));
-  location.reload();
+function editOrder(i){
+  localStorage.setItem("editIndex",i);
+  location.href="add.html";
 }
-
 function deleteOrder(i){
-  if(confirm("هل أنت متأكد من حذف الطلب؟")){
+  if(confirm("حذف الطلب؟")){
     orders.splice(i,1);
-    localStorage.setItem("orders", JSON.stringify(orders));
+    localStorage.setItem("orders",JSON.stringify(orders));
     location.reload();
   }
 }
