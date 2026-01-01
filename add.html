@@ -41,13 +41,14 @@ li{ display:flex; justify-content:space-between; }
 <body>
 
 <script>
+// 🔐 حماية الصفحة
 if(!sessionStorage.getItem("loggedIn")){
   location.href="login.html";
 }
 </script>
 
 <div class="container">
-<h2>تسجيل طلب جديد</h2>
+<h2 id="title">تسجيل طلب جديد</h2>
 
 <label>اسم العميل</label>
 <input id="name">
@@ -108,13 +109,38 @@ if(!sessionStorage.getItem("loggedIn")){
 </div>
 
 <button class="save" onclick="saveOrder()">حفظ الطلب</button>
-<button class="back" onclick="location.href='index.html'">العودة</button>
+<button class="back" onclick="location.href='orders.html'">العودة</button>
 </div>
 
 <script>
+// 🔗 رابط Google Apps Script (كما هو)
 const SHEET_URL = "https://script.google.com/macros/s/AKfycbwIh5xVrmfePd_t2h29cNyZSHmnw_ZX7RD6Wih1xXZ4kfkRUtC7d-BOX5Fgs_ENNm9c/exec";
 
-let drinks=[];
+let drinks = [];
+let editIndex = localStorage.getItem("editIndex");
+let orders = JSON.parse(localStorage.getItem("orders") || "[]");
+
+// ✏️ وضع التعديل
+if(editIndex !== null){
+  const o = orders[editIndex];
+  document.getElementById("title").textContent = "تعديل الطلب";
+
+  name.value = o.name || "";
+  phone.value = o.phone || "";
+  bookingDate.value = o.bookingDate || "";
+  eventDate.value = o.eventDate || "";
+  cart.value = o.cart || "";
+  insurance.value = o.insurance || 0;
+  deposit.value = o.deposit || 0;
+  total.value = o.total || 0;
+  discount.value = o.discount || 0;
+  net.textContent = o.net || 0;
+
+  if(o.drinks){
+    drinks = typeof o.drinks === "string" ? o.drinks.split("، ") : o.drinks;
+    render();
+  }
+}
 
 function addDrink(){
   if(!drinkSelect.value) return;
@@ -146,8 +172,8 @@ function calc(){
 
 function saveOrder(){
   const order={
-    name: name.value,
-    phone: phone.value,
+    name: name.value || "",
+    phone: phone.value || "",
     bookingDate: bookingDate.value,
     eventDate: eventDate.value,
     drinks: drinks.join("، "),
@@ -160,17 +186,25 @@ function saveOrder(){
     status: "جديد"
   };
 
-  const orders = JSON.parse(localStorage.getItem("orders") || "[]");
-  orders.push(order);
+  if(editIndex !== null){
+    orders[editIndex] = order;
+    localStorage.removeItem("editIndex");
+  }else{
+    orders.push(order);
+  }
+
   localStorage.setItem("orders", JSON.stringify(orders));
 
+  // 🔗 Google (بدون تغيير)
   fetch(SHEET_URL,{
     method:"POST",
+    mode:"no-cors",
     headers:{ "Content-Type":"application/json" },
     body: JSON.stringify(order)
   });
 
-  location.href = "orders.html";
+  alert("تم حفظ الطلب بنجاح ✅");
+  location.href="orders.html";
 }
 </script>
 
