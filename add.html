@@ -1,214 +1,278 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>تسجيل طلب جديد - رواق</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تسجيل طلب جديد - رواق</title>
 
-  <style>
-    :root {
-      --purple: #4b1f5c;
-      --purple-dark: #3a1748;
-      --bg: #f5f5f5;
-      --border: #ddd;
-    }
+<style>
+:root {
+  --purple:#4b1f5c;
+  --bg:#f4f1f6;
+}
 
-    body {
-      margin: 0;
-      font-family: "Tahoma", sans-serif;
-      background: var(--bg);
-    }
+body{
+  margin:0;
+  font-family:Tahoma, Arial;
+  background:var(--bg);
+}
 
-    .container {
-      max-width: 600px;
-      margin: 30px auto;
-      background: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.08);
-    }
+.container{
+  max-width:600px;
+  margin:30px auto;
+  background:#fff;
+  padding:20px;
+  border-radius:12px;
+}
 
-    h2 {
-      text-align: center;
-      color: var(--purple);
-      margin-bottom: 20px;
-    }
+h2{
+  text-align:center;
+  color:var(--purple);
+}
 
-    label {
-      display: block;
-      margin-top: 12px;
-      font-size: 14px;
-    }
+label{
+  display:block;
+  margin-top:12px;
+  font-weight:bold;
+}
 
-    input, select {
-      width: 100%;
-      padding: 10px;
-      margin-top: 6px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      font-size: 14px;
-    }
+input, select{
+  width:100%;
+  padding:10px;
+  margin-top:6px;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
 
-    .row {
-      display: flex;
-      gap: 10px;
-    }
+.row{
+  display:flex;
+  gap:10px;
+}
 
-    .row > div {
-      flex: 1;
-    }
+.row > div{
+  flex:1;
+}
 
-    .drink-box {
-      display: flex;
-      gap: 10px;
-      margin-top: 6px;
-    }
+.drink-box{
+  display:flex;
+  gap:10px;
+  margin-top:6px;
+}
 
-    .drink-box input {
-      flex: 1;
-    }
+.add-btn{
+  background:var(--purple);
+  color:#fff;
+  border:none;
+  border-radius:8px;
+  padding:0 14px;
+  font-size:20px;
+  cursor:pointer;
+}
 
-    .add-btn {
-      background: var(--purple);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 0 14px;
-      font-size: 20px;
-      cursor: pointer;
-    }
+ul{
+  margin-top:10px;
+  padding-right:18px;
+}
 
-    ul {
-      margin-top: 10px;
-      padding-right: 18px;
-      font-size: 14px;
-    }
+ul li{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:5px;
+}
 
-    .total-box {
-      background: #f1eef3;
-      padding: 10px;
-      border-radius: 8px;
-      margin-top: 12px;
-      font-size: 14px;
-    }
+.remove{
+  background:none;
+  border:none;
+  color:#b00020;
+  font-size:16px;
+  cursor:pointer;
+}
 
-    .save-btn {
-      width: 100%;
-      margin-top: 20px;
-      padding: 12px;
-      font-size: 16px;
-      background: var(--purple);
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-    }
+.total-box{
+  background:#eee8f0;
+  padding:10px;
+  border-radius:8px;
+  margin-top:12px;
+}
 
-    .save-btn:hover {
-      background: var(--purple-dark);
-    }
+.save-btn{
+  width:100%;
+  margin-top:20px;
+  padding:12px;
+  font-size:16px;
+  background:var(--purple);
+  color:#fff;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+}
 
-    .success {
-      display: none;
-      margin-top: 15px;
-      text-align: center;
-      color: green;
-      font-size: 14px;
-    }
-  </style>
+.success{
+  display:none;
+  text-align:center;
+  margin-top:15px;
+  color:green;
+}
+</style>
 </head>
+
 <body>
 
 <div class="container">
-  <h2>تسجيل طلب جديد</h2>
+<h2>تسجيل طلب جديد</h2>
 
-  <label>اسم العميل</label>
-  <input type="text" id="name">
+<label>اسم العميل</label>
+<input id="name">
 
-  <label>رقم الجوال</label>
-  <input type="tel" id="phone">
+<label>رقم الجوال</label>
+<input id="phone">
 
-  <div class="row">
-    <div>
-      <label>تاريخ الحجز</label>
-      <input type="date" id="bookingDate">
-    </div>
-    <div>
-      <label>تاريخ المناسبة</label>
-      <input type="date" id="eventDate">
-    </div>
+<div class="row">
+  <div>
+    <label>تاريخ الحجز</label>
+    <input type="date" id="bookingDate">
   </div>
-
-  <label>المشروبات</label>
-  <div class="drink-box">
-    <input type="number" id="drinkPrice" placeholder="سعر المشروب">
-    <button class="add-btn" onclick="addDrink()">+</button>
+  <div>
+    <label>تاريخ المناسبة</label>
+    <input type="date" id="eventDate">
   </div>
+</div>
 
-  <ul id="drinkList"></ul>
-
-  <label>العربة</label>
-  <select id="cart" onchange="updateTotals()">
-    <option value="0">اختر العربة</option>
-    <option value="300">كبيرة</option>
-    <option value="200">وسط</option>
-    <option value="150">صغيرة</option>
-    <option value="350">وسط + صغيرة</option>
+<label>المشروبات</label>
+<div class="drink-box">
+  <select id="drinkSelect">
+    <option value="">اختر المشروب</option>
+    <option value="hot">هوت شوكلت</option>
+    <option value="sahlab">سحلب</option>
+    <option value="karak">كرك</option>
+    <option value="custard">كاسترد</option>
+    <option value="almond">قهوة اللوز</option>
+    <option value="arabic">قهوة عربية</option>
+    <option value="tea">شاهي أحمر</option>
+    <option value="dates">تمر محشي</option>
+    <option value="maamoul">معمول</option>
   </select>
 
-  <label>التأمين</label>
-  <input type="number" id="insurance" value="0" oninput="updateTotals()">
+  <button class="add-btn" onclick="addDrink()">+</button>
+</div>
 
-  <label>العربون</label>
-  <input type="number" id="deposit" value="0" oninput="updateTotals()">
+<ul id="drinkList"></ul>
 
-  <label>الخصم</label>
-  <input type="number" id="discount" value="0" oninput="updateTotals()">
+<label>العربة</label>
+<select id="cart" onchange="updateTotals()">
+  <option value="0">اختر العربة</option>
+  <option value="300">كبيرة</option>
+  <option value="200">وسط</option>
+  <option value="150">صغيرة</option>
+  <option value="350">وسط + صغيرة</option>
+</select>
 
-  <div class="total-box">
-    <div>إجمالي الفاتورة: <strong id="total">0</strong></div>
-    <div>الصافي: <strong id="net">0</strong></div>
-  </div>
+<label>التأمين</label>
+<input type="number" id="insurance" value="0">
 
-  <button class="save-btn" onclick="saveOrder()">حفظ الطلب</button>
-  <div class="success" id="successMsg">تم تسجيل الطلب بنجاح ✅</div>
+<label>العربون</label>
+<input type="number" id="deposit" value="0" oninput="updateTotals()">
+
+<label>الخصم</label>
+<input type="number" id="discount" value="0" oninput="updateTotals()">
+
+<div class="total-box">
+  <div>إجمالي الفاتورة: <strong id="total">0</strong></div>
+  <div>الصافي: <strong id="net">0</strong></div>
+</div>
+
+<button class="save-btn" onclick="saveOrder()">حفظ الطلب</button>
+<div class="success" id="successMsg">تم تسجيل الطلب بنجاح ✅</div>
+
 </div>
 
 <script>
-  let drinksTotal = 0;
+const drinkPrices = {
+  hot:10,
+  sahlab:12,
+  karak:8,
+  custard:9,
+  almond:15,
+  arabic:10,
+  tea:6,
+  dates:7,
+  maamoul:8
+};
 
-  function addDrink() {
-    const price = Number(document.getElementById("drinkPrice").value);
-    if (!price) return;
+let drinks = [];
 
-    drinksTotal += price;
+function addDrink(){
+  const select = document.getElementById("drinkSelect");
+  const key = select.value;
+  if(!key) return;
 
-    const li = document.createElement("li");
-    li.textContent = price + " ريال";
-    document.getElementById("drinkList").appendChild(li);
+  drinks.push({
+    key,
+    name: select.options[select.selectedIndex].text,
+    price: drinkPrices[key]
+  });
 
-    document.getElementById("drinkPrice").value = "";
-    updateTotals();
-  }
+  renderDrinks();
+  updateTotals();
+  select.value="";
+}
 
-  function updateTotals() {
-    const cart = Number(document.getElementById("cart").value);
-    const discount = Number(document.getElementById("discount").value);
-    const deposit = Number(document.getElementById("deposit").value);
+function renderDrinks(){
+  const list = document.getElementById("drinkList");
+  list.innerHTML="";
+  drinks.forEach((d,i)=>{
+    const li=document.createElement("li");
+    li.innerHTML=`
+      <span>${d.name}</span>
+      <button class="remove" onclick="removeDrink(${i})">✖</button>
+    `;
+    list.appendChild(li);
+  });
+}
 
-    const total = cart + drinksTotal;
-    const net = total - discount - deposit;
+function removeDrink(i){
+  drinks.splice(i,1);
+  renderDrinks();
+  updateTotals();
+}
 
-    document.getElementById("total").textContent = total;
-    document.getElementById("net").textContent = net < 0 ? 0 : net;
-  }
+function updateTotals(){
+  const cart = Number(document.getElementById("cart").value||0);
+  const discount = Number(document.getElementById("discount").value||0);
+  const deposit = Number(document.getElementById("deposit").value||0);
 
-  function saveOrder() {
-    document.getElementById("successMsg").style.display = "block";
-    setTimeout(() => {
-      document.getElementById("successMsg").style.display = "none";
-    }, 2000);
-  }
+  const drinksSum = drinks.reduce((s,d)=>s+d.price,0);
+  const total = cart + drinksSum;
+  const net = total - discount - deposit;
+
+  document.getElementById("total").textContent = total;
+  document.getElementById("net").textContent = net<0?0:net;
+}
+
+function saveOrder(){
+  const order={
+    name:name.value,
+    phone:phone.value,
+    bookingDate:bookingDate.value,
+    eventDate:eventDate.value,
+    drinks:drinks,
+    cart:cart.options[cart.selectedIndex].text,
+    insurance:insurance.value,
+    deposit:deposit.value,
+    discount:discount.value,
+    total:Number(total.textContent),
+    net:Number(net.textContent),
+    status:"جديد"
+  };
+
+  const orders = JSON.parse(localStorage.getItem("orders")||"[]");
+  orders.push(order);
+  localStorage.setItem("orders",JSON.stringify(orders));
+
+  successMsg.style.display="block";
+  setTimeout(()=>successMsg.style.display="none",2000);
+}
 </script>
 
 </body>
