@@ -6,14 +6,10 @@
 <title>تسجيل طلب جديد - رواق</title>
 
 <style>
-:root{
-  --purple:#4b1f5c;
-  --bg:#f4f1f6;
-}
 body{
+  font-family:Tahoma;
+  background:#f4f1f6;
   margin:0;
-  font-family:Tahoma, Arial;
-  background:var(--bg);
 }
 .container{
   max-width:600px;
@@ -22,88 +18,25 @@ body{
   padding:20px;
   border-radius:12px;
 }
-h2{
-  text-align:center;
-  color:var(--purple);
-}
-label{
-  display:block;
-  margin-top:12px;
-  font-weight:bold;
-}
-input, select{
-  width:100%;
-  padding:10px;
-  margin-top:6px;
-  border-radius:8px;
-  border:1px solid #ccc;
-}
-.row{
-  display:flex;
-  gap:10px;
-}
-.row > div{ flex:1; }
-
-.drink-box{
-  display:flex;
-  gap:10px;
-  margin-top:6px;
-}
-.add-btn{
-  background:var(--purple);
-  color:#fff;
-  border:none;
-  border-radius:8px;
-  padding:0 14px;
-  font-size:20px;
-  cursor:pointer;
-}
-ul{
-  margin-top:10px;
-  padding-right:18px;
-}
-ul li{
-  display:flex;
-  justify-content:space-between;
-  margin-bottom:5px;
-}
-.remove{
-  background:none;
-  border:none;
-  color:#b00020;
-  font-size:16px;
-  cursor:pointer;
-}
-.total-box{
-  background:#eee8f0;
-  padding:10px;
-  border-radius:8px;
-  margin-top:12px;
+h2{ text-align:center; color:#4b1f5c; }
+label{ display:block; margin-top:12px; font-weight:bold; }
+input,select{
+  width:100%; padding:10px; margin-top:6px;
+  border-radius:8px; border:1px solid #ccc;
 }
 button{
-  width:100%;
-  margin-top:15px;
-  padding:12px;
+  width:100%; margin-top:15px; padding:12px;
+  background:#4b1f5c; color:#fff;
+  border:none; border-radius:10px;
   font-size:16px;
-  border:none;
-  border-radius:10px;
-  cursor:pointer;
 }
-.save-btn{ background:var(--purple); color:#fff; }
-.back-btn{ background:#ddd; color:var(--purple); }
-.pass-btn{ background:#000; color:#fff; }
-
-.success{
-  display:none;
-  text-align:center;
-  margin-top:15px;
-  color:green;
-}
+ul{ padding-right:20px; }
+li{ display:flex; justify-content:space-between; }
+.remove{ background:none; border:none; color:red; }
 </style>
 </head>
 
 <body>
-
 <div class="container">
 <h2>تسجيل طلب جديد</h2>
 
@@ -113,153 +46,100 @@ button{
 <label>رقم الجوال</label>
 <input id="phone">
 
-<div class="row">
-  <div>
-    <label>تاريخ الحجز</label>
-    <input type="date" id="bookingDate">
-  </div>
-  <div>
-    <label>تاريخ المناسبة</label>
-    <input type="date" id="eventDate">
-  </div>
-</div>
+<label>تاريخ الحجز</label>
+<input type="date" id="bookingDate">
+
+<label>تاريخ المناسبة</label>
+<input type="date" id="eventDate">
 
 <label>المشروبات</label>
-<div class="drink-box">
-  <select id="drinkSelect">
-    <option value="">اختر المشروب</option>
-    <option>هوت شوكلت</option>
-    <option>سحلب</option>
-    <option>كرك</option>
-    <option>كاسترد</option>
-    <option>قهوة اللوز</option>
-    <option>قهوة عربية</option>
-    <option>شاهي أحمر</option>
-    <option>تمر محشي</option>
-    <option>معمول</option>
-  </select>
-  <button class="add-btn" onclick="addDrink()">+</button>
-</div>
-
+<select id="drinkSelect">
+  <option value="">اختر</option>
+  <option>هوت شوكلت</option>
+  <option>سحلب</option>
+  <option>كرك</option>
+  <option>قهوة عربية</option>
+</select>
+<button onclick="addDrink()">إضافة مشروب</button>
 <ul id="drinkList"></ul>
 
 <label>العربة</label>
 <select id="cart">
-  <option value="">اختر العربة</option>
+  <option value="">اختر</option>
   <option>كبيرة</option>
   <option>وسط</option>
   <option>صغيرة</option>
-  <option>وسط + صغيرة</option>
 </select>
 
 <label>التأمين</label>
 <input type="number" id="insurance" value="0">
 
 <label>العربون</label>
-<input type="number" id="depositInput" value="0" oninput="updateNet()">
+<input type="number" id="deposit" value="0" oninput="calc()">
 
-<label>إجمالي الفاتورة</label>
-<input type="number" id="totalInput" value="0" oninput="updateNet()">
+<label>الإجمالي</label>
+<input type="number" id="total" value="0" oninput="calc()">
 
 <label>الخصم</label>
-<input type="number" id="discountInput" value="0" oninput="updateNet()">
+<input type="number" id="discount" value="0" oninput="calc()">
 
-<div class="total-box">
-  الصافي: <strong id="net">0</strong>
-</div>
+<p>الصافي: <strong id="net">0</strong></p>
 
-<button class="save-btn" onclick="saveOrder()">حفظ الطلب</button>
-<button class="pass-btn" onclick="changePassword()">تغيير كلمة السر</button>
-<button class="back-btn" onclick="location.href='index.html'">العودة</button>
-
-<div class="success" id="successMsg">تم حفظ الطلب وإرساله ✅</div>
+<button onclick="saveOrder()">حفظ الطلب</button>
 </div>
 
 <script>
-/* 🔗 رابط Google Script */
-const SHEET_URL =
-"https://script.google.com/macros/s/AKfycbwTIWFU4AB768YD9J_uzeA73cGRaybGfWeIc316N35e6BkieCTCnHN7p9EMiT4yrNKr/exec";
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbybvabnb_dGz4jQBmK5pasaO2k0UK4e_hfGLroQT9uC-4MRfZygnmudaz9TSbo1zC4r/exec";
 
 let drinks=[];
 
 function addDrink(){
-  const s=document.getElementById("drinkSelect");
-  if(!s.value) return;
-  drinks.push(s.value);
-  renderDrinks();
-  s.value="";
+  if(!drinkSelect.value) return;
+  drinks.push(drinkSelect.value);
+  render();
 }
 
-function renderDrinks(){
-  const ul=document.getElementById("drinkList");
-  ul.innerHTML="";
+function render(){
+  drinkList.innerHTML="";
   drinks.forEach((d,i)=>{
-    ul.innerHTML+=`
-      <li>${d}
-        <button class="remove" onclick="removeDrink(${i})">✖</button>
-      </li>`;
+    drinkList.innerHTML+=`<li>${d}<button class="remove" onclick="del(${i})">✖</button></li>`;
   });
 }
 
-function removeDrink(i){
-  drinks.splice(i,1);
-  renderDrinks();
+function del(i){
+  drinks.splice(i,1); render();
 }
 
-function updateNet(){
-  const total=+totalInput.value||0;
-  const discount=+discountInput.value||0;
-  const deposit=+depositInput.value||0;
-  net.textContent=Math.max(total-discount-deposit,0);
+function calc(){
+  net.textContent = Math.max(
+    (total.value||0) - (discount.value||0) - (deposit.value||0),
+    0
+  );
 }
 
 function saveOrder(){
-  if(!name.value || !phone.value){
-    alert("الرجاء إدخال اسم العميل ورقم الجوال");
-    return;
-  }
-
   const order={
     name:name.value,
     phone:phone.value,
     bookingDate:bookingDate.value,
     eventDate:eventDate.value,
-    drinks:drinks.join(" ، "),
+    drinks:drinks,
     cart:cart.value,
     insurance:insurance.value,
-    deposit:depositInput.value,
-    total:totalInput.value,
-    discount:discountInput.value,
+    deposit:deposit.value,
+    total:total.value,
+    discount:discount.value,
     net:net.textContent,
     status:"جديد"
   };
 
-  /* حفظ محلي */
-  const local=JSON.parse(localStorage.getItem("orders")||"[]");
-  local.push(order);
-  localStorage.setItem("orders",JSON.stringify(local));
-
-  /* إرسال إلى Google Sheets */
   fetch(SHEET_URL,{
     method:"POST",
-    mode:"no-cors",
-    headers:{ "Content-Type":"application/json" },
     body:JSON.stringify(order)
-  });
-
-  successMsg.style.display="block";
-  setTimeout(()=>successMsg.style.display="none",2000);
-}
-
-/* تغيير كلمة السر (محلي) */
-function changePassword(){
-  const p=prompt("أدخل كلمة السر الجديدة:");
-  if(p){
-    localStorage.setItem("password",p);
-    alert("تم تغيير كلمة السر ✅");
-  }
+  })
+  .then(()=>alert("تم حفظ الطلب ✅"))
+  .catch(()=>alert("فشل الإرسال ❌"));
 }
 </script>
-
 </body>
 </html>
