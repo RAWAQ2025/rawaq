@@ -98,37 +98,30 @@ details ul{
 <body>
 
 <div class="container">
-  <h2>عرض الطلبات</h2>
+<h2>عرض الطلبات</h2>
 
-  <table>
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>العميل</th>
-        <th>تاريخ المناسبة</th>
-        <th>المشروبات</th>
-        <th>العربة</th>
-        <th>العربون / التأمين</th>
-        <th>الصافي</th>
-        <th>إجراءات</th>
-      </tr>
-    </thead>
-    <tbody id="tableBody"></tbody>
-  </table>
+<table>
+<thead>
+<tr>
+  <th>#</th>
+  <th>العميل</th>
+  <th>تاريخ المناسبة</th>
+  <th>المشروبات</th>
+  <th>العربة</th>
+  <th>العربون / التأمين</th>
+  <th>الصافي</th>
+  <th>إجراءات</th>
+</tr>
+</thead>
+<tbody id="tableBody"></tbody>
+</table>
 
-  <div id="emptyMsg" class="empty" style="display:none">
-    لا توجد طلبات
-  </div>
-
-  <button class="back-btn" onclick="location.href='index.html'">
-    العودة
-  </button>
+<div id="emptyMsg" class="empty" style="display:none">لا توجد طلبات</div>
+<button class="back-btn" onclick="location.href='index.html'">العودة</button>
 </div>
 
 <script>
-/* 📦 جلب الطلبات */
 let orders = JSON.parse(localStorage.getItem("orders") || "[]");
-
 const body = document.getElementById("tableBody");
 const emptyMsg = document.getElementById("emptyMsg");
 
@@ -143,38 +136,31 @@ orders.forEach((order, index)=>{
   if(order.status === "جديد"){
     hasOrders = true;
 
-    /* 🧠 حماية البيانات */
-    const name = order.name || "—";
-    const phone = order.phone || "";
-    const eventDateText = order.eventDate || "";
-
-    /* المشروبات: نص أو مصفوفة */
-    let drinksArr = [];
-    if(Array.isArray(order.drinks)){
-      drinksArr = order.drinks;
-    }else if(typeof order.drinks === "string"){
-      drinksArr = order.drinks.split("، ");
-    }
-
-    const drinksList = drinksArr
-      .map(d=>`<li>${d}</li>`)
-      .join("");
-
-    /* ألوان حسب التاريخ */
     const eventDate = new Date(order.eventDate);
     const diffDays = Math.ceil((eventDate - today)/(1000*60*60*24));
+
     let color =
       diffDays <= 2 ? "var(--red)" :
       diffDays <= 5 ? "var(--yellow)" :
       "var(--green)";
 
+    const drinksList = (order.drinks || "")
+      .split("،")
+      .filter(d => d.trim() !== "")
+      .map(d => `<li>${d}</li>`)
+      .join("");
+
+    const clientName = order.name || order.phone || "—";
+
     const tr = document.createElement("tr");
     tr.style.background = color;
-
     tr.innerHTML = `
       <td><strong>${counter++}</strong></td>
-      <td class="client-box">${name}<br>${phone}</td>
-      <td>${eventDateText}</td>
+      <td class="client-box">
+        ${clientName}<br>
+        ${order.phone || ""}
+      </td>
+      <td>${order.eventDate || ""}</td>
       <td>
         <details>
           <summary>عرض</summary>
@@ -193,20 +179,18 @@ orders.forEach((order, index)=>{
         <button class="btn delete" onclick="deleteOrder(${index})">حذف</button>
       </td>
     `;
-
     body.appendChild(tr);
   }
 });
 
 if(!hasOrders){
-  emptyMsg.style.display = "block";
+  emptyMsg.style.display="block";
 }
 
-/* ✅ الدوال */
 function markDone(i){
   orders[i].status = "تم";
   localStorage.setItem("orders", JSON.stringify(orders));
-  location.href = "completed.html";
+  location.reload();
 }
 
 function deleteOrder(i){
@@ -219,7 +203,7 @@ function deleteOrder(i){
 
 function editOrder(i){
   localStorage.setItem("editIndex", i);
-  location.href = "add.html";
+  location.href="add.html";
 }
 </script>
 
