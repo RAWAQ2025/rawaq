@@ -2,8 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>المبيعات | رواق</title>
-
+<title>المبيعات</title>
 <style>
 body{
   font-family: Tahoma;
@@ -14,25 +13,19 @@ body{
   margin:40px auto;
   background:#fff;
   padding:20px;
-  border-radius:10px;
-}
-h2{
+  border-radius:12px;
   text-align:center;
-  margin-bottom:20px;
 }
 .card{
   background:#5a1f5f;
   color:#fff;
-  padding:15px;
+  padding:12px;
+  margin:10px 0;
   border-radius:8px;
-  margin-bottom:10px;
-  text-align:center;
-  font-size:16px;
 }
 a{
   display:block;
   margin-top:15px;
-  text-align:center;
   text-decoration:none;
   color:#5a1f5f;
   font-weight:bold;
@@ -54,16 +47,16 @@ a{
 </div>
 
 <script>
-let orders = JSON.parse(localStorage.getItem("orders") || "[]");
+let orders = JSON.parse(localStorage.getItem("orders")) || [];
 
 let today = new Date();
 let dayTotal = 0, weekTotal = 0, monthTotal = 0, yearTotal = 0;
 
 orders.forEach(o => {
-  if(o.status !== "تم") return; // نحسب المنجز فقط
+  if (o.status !== "تم") return;
 
   let d = new Date(o.eventDate);
- let net = Number(o.net || o.netTotal || o.total || 0);
+  let net = Number(o.netTotal || 0);
 
   // اليوم
   if (d.toDateString() === today.toDateString()) {
@@ -85,13 +78,6 @@ orders.forEach(o => {
   if (d.getFullYear() === today.getFullYear()) {
     yearTotal += net;
   }
-});
-
-document.getElementById("day").innerText   = "مبيعات اليوم: " + dayTotal;
-document.getElementById("week").innerText  = "مبيعات الأسبوع: " + weekTotal;
-document.getElementById("month").innerText = "مبيعات الشهر: " + monthTotal;
-document.getElementById("year").innerText  = "مبيعات السنة: " + yearTotal;
-</script>
 });
 
 document.getElementById("day").innerText   = "مبيعات اليوم: " + dayTotal;
