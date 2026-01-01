@@ -1,65 +1,182 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>الدخول للنظام</title>
+<title>إدارة الحجوزات</title>
 
 <style>
 body {
-  font-family: Arial;
-  background: #f5f5f5;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+  font-family: Tahoma;
+  background: #f5f7fa;
+  padding: 20px;
 }
 
-.box {
-  background: white;
-  padding: 30px;
-  width: 300px;
+h2 {
   text-align: center;
-  border-radius: 8px;
+  color: #333;
 }
 
-input {
+form {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 900px;
+  margin: auto;
+}
+
+input, select, button {
   width: 100%;
-  padding: 10px;
-  margin: 15px 0;
-  font-size: 16px;
+  padding: 8px;
+  margin: 6px 0;
 }
 
 button {
-  width: 100%;
-  padding: 12px;
   background: #1e40af;
   color: white;
   border: none;
-  font-size: 16px;
   cursor: pointer;
 }
+
+button:hover {
+  background: #1e3a8a;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 30px;
+  background: white;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 6px;
+  text-align: center;
+}
+
+th {
+  background: #e5e7eb;
+}
+
+.status-ok { background: #d1fae5; }
+.status-warning { background: #fde68a; }
+.status-danger { background: #fecaca; }
 </style>
 </head>
 
 <body>
 
-<div class="box">
-  <h2>الدخول للنظام</h2>
-  <input type="password" id="password" placeholder="كلمة المرور">
-  <button onclick="login()">دخول</button>
-</div>
+<h2>إدارة الحجوزات</h2>
+
+<form id="bookingForm">
+  <input type="text" id="name" placeholder="اسم العميل" required>
+  <input type="tel" id="phone" placeholder="رقم الجوال" required>
+
+  <label>تاريخ الحجز</label>
+  <input type="date" id="bookingDate" required>
+
+  <label>تاريخ المناسبة</label>
+  <input type="date" id="eventDate" required>
+
+  <label>العربة</label>
+  <select id="cart" required>
+    <option value="">اختر</option>
+    <option value="كبيرة">كبيرة</option>
+    <option value="وسط">وسط</option>
+    <option value="صغيرة">صغيرة</option>
+    <option value="وسط وصغيرة">وسط وصغيرة</option>
+  </select>
+
+  <input type="number" id="total" placeholder="إجمالي الفاتورة" required>
+  <input type="number" id="discount" placeholder="الخصم" value="0">
+  <input type="number" id="deposit" placeholder="العربون" value="0">
+  <input type="number" id="insurance" placeholder="التأمين" value="0">
+
+  <button type="submit">إضافة الحجز</button>
+</form>
+
+<table>
+<thead>
+<tr>
+<th>الاسم</th>
+<th>الجوال</th>
+<th>تاريخ الحجز</th>
+<th>تاريخ المناسبة</th>
+<th>العربة</th>
+<th>الإجمالي النهائي</th>
+</tr>
+</thead>
+<tbody id="tableBody"></tbody>
+</table>
 
 <script>
-function login() {
-  const pass = document.getElementById("password").value;
+let bookings = [];
 
-  if (pass === "1234") {
-    alert("تم الدخول بنجاح ✅");
-    // هنا لاحقًا نعرض صفحة النظام
-  } else {
-    alert("كلمة المرور غير صحيحة ❌");
+document.getElementById("bookingForm").addEventListener("submit", function(e){
+  e.preventDefault();
+
+  let name = nameField.value;
+  let phone = phoneField.value;
+  let bookingDate = bookingDateField.value;
+  let eventDate = eventDateField.value;
+  let cart = cartField.value;
+
+  let total = Number(totalField.value);
+  let discount = Number(discountField.value);
+  let deposit = Number(depositField.value);
+  let insurance = Number(insuranceField.value);
+
+  let finalTotal = total - discount;
+
+  let conflict = bookings.find(b =>
+    b.eventDate === eventDate && b.cart === cart
+  );
+
+  if(conflict){
+    alert("⚠️ العربة محجوزة في نفس تاريخ المناسبة");
+    return;
   }
+
+  bookings.push({
+    name, phone, bookingDate, eventDate, cart, finalTotal
+  });
+
+  bookings.sort((a,b)=> new Date(a.eventDate) - new Date(b.eventDate));
+  renderTable();
+
+  alert("✅ تم تسجيل الحجز بنجاح");
+  this.reset();
+});
+
+function renderTable(){
+  let body = document.getElementById("tableBody");
+  body.innerHTML = "";
+
+  bookings.forEach(b=>{
+    let tr = document.createElement("tr");
+    tr.className = "status-ok";
+
+    tr.innerHTML = `
+      <td>${b.name}</td>
+      <td>${b.phone}</td>
+      <td>${b.bookingDate}</td>
+      <td>${b.eventDate}</td>
+      <td>${b.cart}</td>
+      <td>${b.finalTotal}</td>
+    `;
+    body.appendChild(tr);
+  });
 }
+
+const nameField = document.getElementById("name");
+const phoneField = document.getElementById("phone");
+const bookingDateField = document.getElementById("bookingDate");
+const eventDateField = document.getElementById("eventDate");
+const cartField = document.getElementById("cart");
+const totalField = document.getElementById("total");
+const discountField = document.getElementById("discount");
+const depositField = document.getElementById("deposit");
+const insuranceField = document.getElementById("insurance");
 </script>
 
 </body>
