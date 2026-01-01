@@ -1,1 +1,96 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>المبيعات | رواق</title>
 
+<style>
+body{
+  font-family: Tahoma;
+  background:#f5f5f5;
+}
+.box{
+  max-width:500px;
+  margin:40px auto;
+  background:#fff;
+  padding:20px;
+  border-radius:10px;
+}
+h2{
+  text-align:center;
+  margin-bottom:20px;
+}
+.card{
+  background:#5a1f5f;
+  color:#fff;
+  padding:15px;
+  border-radius:8px;
+  margin-bottom:10px;
+  text-align:center;
+  font-size:16px;
+}
+a{
+  display:block;
+  margin-top:15px;
+  text-align:center;
+  text-decoration:none;
+  color:#5a1f5f;
+  font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+  <h2>📊 المبيعات</h2>
+
+  <div class="card" id="day">مبيعات اليوم: 0</div>
+  <div class="card" id="week">مبيعات الأسبوع: 0</div>
+  <div class="card" id="month">مبيعات الشهر: 0</div>
+  <div class="card" id="year">مبيعات السنة: 0</div>
+
+  <a href="index.html">⬅ الرجوع للرئيسية</a>
+</div>
+
+<script>
+let orders = JSON.parse(localStorage.getItem("doneOrders")) || [];
+
+let today = new Date();
+let dayTotal = 0, weekTotal = 0, monthTotal = 0, yearTotal = 0;
+
+orders.forEach(o => {
+  let d = new Date(o.date);
+
+  let net = Number(o.net) || 0;
+
+  // اليوم
+  if (d.toDateString() === today.toDateString()) {
+    dayTotal += net;
+  }
+
+  // الأسبوع
+  let diffDays = (today - d) / (1000*60*60*24);
+  if (diffDays <= 7) {
+    weekTotal += net;
+  }
+
+  // الشهر
+  if (d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear()) {
+    monthTotal += net;
+  }
+
+  // السنة
+  if (d.getFullYear() === today.getFullYear()) {
+    yearTotal += net;
+  }
+});
+
+document.getElementById("day").innerText   = "مبيعات اليوم: " + dayTotal;
+document.getElementById("week").innerText  = "مبيعات الأسبوع: " + weekTotal;
+document.getElementById("month").innerText = "مبيعات الشهر: " + monthTotal;
+document.getElementById("year").innerText  = "مبيعات السنة: " + yearTotal;
+</script>
+
+</body>
+</html>
