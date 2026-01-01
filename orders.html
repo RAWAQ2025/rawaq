@@ -6,6 +6,7 @@
 <title>عرض الطلبات - رواق</title>
 
 <script>
+/* 🔐 حماية الصفحة */
 if(!sessionStorage.getItem("loggedIn")){
   location.replace("login.html");
 }
@@ -19,54 +20,120 @@ if(!sessionStorage.getItem("loggedIn")){
   --yellow:#fff3cd;
   --green:#d4edda;
 }
-body{margin:0;font-family:Tahoma,Arial;background:var(--bg);}
-.container{max-width:95%;margin:20px auto;background:#fff;padding:15px;border-radius:12px;}
-h2{text-align:center;color:var(--purple);}
-table{width:100%;border-collapse:collapse;margin-top:15px;font-size:14px;}
-th,td{border:1px solid #ddd;padding:8px;text-align:center;vertical-align:top;}
-th{background:var(--purple);color:#fff;}
-details summary{cursor:pointer;color:var(--purple);font-weight:bold;}
-details ul{padding-right:18px;margin:6px 0 0;text-align:right;}
-.client-box,.money-box{line-height:1.6;font-size:13px;}
-.btn{border:none;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:12px;margin:2px;}
+body{
+  margin:0;
+  font-family:Tahoma,Arial;
+  background:var(--bg);
+}
+.container{
+  max-width:95%;
+  margin:20px auto;
+  background:#fff;
+  padding:15px;
+  border-radius:12px;
+}
+h2{
+  text-align:center;
+  color:var(--purple);
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:15px;
+  font-size:14px;
+}
+th,td{
+  border:1px solid #ddd;
+  padding:8px;
+  text-align:center;
+  vertical-align:top;
+}
+th{
+  background:var(--purple);
+  color:#fff;
+}
+details summary{
+  cursor:pointer;
+  color:var(--purple);
+  font-weight:bold;
+}
+details ul{
+  padding-right:18px;
+  margin:6px 0 0;
+  text-align:right;
+}
+.client-box,.money-box{
+  line-height:1.6;
+  font-size:13px;
+}
+.btn{
+  border:none;
+  padding:5px 8px;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:12px;
+  margin:2px;
+}
 .done{background:#4b1f5c;color:#fff;}
 .edit{background:#ffc107;}
 .delete{background:#dc3545;color:#fff;}
-.back-btn{margin-top:15px;width:100%;padding:12px;background:#ddd;color:#4b1f5c;border:none;border-radius:10px;cursor:pointer;}
-.empty{text-align:center;margin-top:20px;color:#777;}
+.back-btn{
+  margin-top:15px;
+  width:100%;
+  padding:12px;
+  background:#ddd;
+  color:#4b1f5c;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+}
+.empty{
+  text-align:center;
+  margin-top:20px;
+  color:#777;
+}
 </style>
 </head>
 
 <body>
+
 <div class="container">
-<h2>عرض الطلبات</h2>
+  <h2>عرض الطلبات</h2>
 
-<table>
-<thead>
-<tr>
-  <th>#</th>
-  <th>العميل</th>
-  <th>تاريخ المناسبة</th>
-  <th>المشروبات</th>
-  <th>العربة</th>
-  <th>العربون / التأمين</th>
-  <th>الصافي</th>
-  <th>إجراءات</th>
-</tr>
-</thead>
-<tbody id="tableBody"></tbody>
-</table>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>العميل</th>
+        <th>تاريخ المناسبة</th>
+        <th>المشروبات</th>
+        <th>العربة</th>
+        <th>العربون / التأمين</th>
+        <th>الصافي</th>
+        <th>إجراءات</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
 
-<div id="emptyMsg" class="empty" style="display:none">لا توجد طلبات</div>
-<button class="back-btn" onclick="location.href='index.html'">العودة</button>
+  <div id="emptyMsg" class="empty" style="display:none">
+    لا توجد طلبات
+  </div>
+
+  <button class="back-btn" onclick="location.href='index.html'">
+    العودة
+  </button>
 </div>
 
 <script>
+/* 📦 جلب الطلبات */
 let orders = JSON.parse(localStorage.getItem("orders") || "[]");
+
 const body = document.getElementById("tableBody");
 const emptyMsg = document.getElementById("emptyMsg");
 
-orders.sort((a,b)=> new Date(a.eventDate) - new Date(b.eventDate));
+/* ترتيب حسب تاريخ المناسبة */
+orders.sort((a,b)=> new Date(a.eventDate || 0) - new Date(b.eventDate || 0));
 
 let today = new Date();
 let counter = 1;
@@ -76,43 +143,72 @@ orders.forEach((order, index)=>{
   if(order.status === "جديد"){
     hasOrders = true;
 
+    /* 🧠 حماية البيانات */
+    const name = order.name || "—";
+    const phone = order.phone || "";
+    const eventDateText = order.eventDate || "";
+
+    /* المشروبات: نص أو مصفوفة */
+    let drinksArr = [];
+    if(Array.isArray(order.drinks)){
+      drinksArr = order.drinks;
+    }else if(typeof order.drinks === "string"){
+      drinksArr = order.drinks.split("، ");
+    }
+
+    const drinksList = drinksArr
+      .map(d=>`<li>${d}</li>`)
+      .join("");
+
+    /* ألوان حسب التاريخ */
     const eventDate = new Date(order.eventDate);
     const diffDays = Math.ceil((eventDate - today)/(1000*60*60*24));
-    let color = diffDays<=2 ? "var(--red)" : diffDays<=5 ? "var(--yellow)" : "var(--green)";
-
-    const drinksArr = Array.isArray(order.drinks)
-      ? order.drinks
-      : (order.drinks ? order.drinks.split("، ") : []);
-
-    const drinksList = drinksArr.map(d=>`<li>${d}</li>`).join("");
+    let color =
+      diffDays <= 2 ? "var(--red)" :
+      diffDays <= 5 ? "var(--yellow)" :
+      "var(--green)";
 
     const tr = document.createElement("tr");
     tr.style.background = color;
+
     tr.innerHTML = `
       <td><strong>${counter++}</strong></td>
-      <td class="client-box">${order.name}<br>${order.phone}</td>
-      <td>${order.eventDate}</td>
-      <td><details><summary>عرض</summary><ul>${drinksList}</ul></details></td>
-      <td>${order.cart||""}</td>
-      <td class="money-box">عربون: ${order.deposit||0}<br>تأمين: ${order.insurance||0}</td>
-      <td>${order.net||0}</td>
+      <td class="client-box">${name}<br>${phone}</td>
+      <td>${eventDateText}</td>
+      <td>
+        <details>
+          <summary>عرض</summary>
+          <ul>${drinksList}</ul>
+        </details>
+      </td>
+      <td>${order.cart || ""}</td>
+      <td class="money-box">
+        عربون: ${order.deposit || 0}<br>
+        تأمين: ${order.insurance || 0}
+      </td>
+      <td>${order.net || 0}</td>
       <td>
         <button class="btn done" onclick="markDone(${index})">تم</button>
         <button class="btn edit" onclick="editOrder(${index})">تعديل</button>
         <button class="btn delete" onclick="deleteOrder(${index})">حذف</button>
       </td>
     `;
+
     body.appendChild(tr);
   }
 });
 
-if(!hasOrders) emptyMsg.style.display="block";
+if(!hasOrders){
+  emptyMsg.style.display = "block";
+}
 
+/* ✅ الدوال */
 function markDone(i){
   orders[i].status = "تم";
   localStorage.setItem("orders", JSON.stringify(orders));
-  window.location.href = "completed.html";
+  location.href = "completed.html";
 }
+
 function deleteOrder(i){
   if(confirm("هل أنت متأكد من حذف الطلب؟")){
     orders.splice(i,1);
@@ -120,10 +216,12 @@ function deleteOrder(i){
     location.reload();
   }
 }
+
 function editOrder(i){
   localStorage.setItem("editIndex", i);
-  location.href="add.html";
+  location.href = "add.html";
 }
 </script>
+
 </body>
 </html>
