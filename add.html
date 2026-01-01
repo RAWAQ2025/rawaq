@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>تسجيل طلب جديد | رواق</title>
+<title>تسجيل طلب جديد - رواق</title>
 
 <style>
 :root{
@@ -43,25 +43,70 @@ input, select{
   gap:10px;
 }
 .row > div{ flex:1; }
-
-button{
-  margin-top:20px;
+.drink-box{
+  display:flex;
+  gap:10px;
+  margin-top:6px;
+}
+.add-btn{
+  background:var(--purple);
+  color:#fff;
+  border:none;
+  border-radius:8px;
+  padding:0 14px;
+  font-size:20px;
+  cursor:pointer;
+}
+ul{
+  margin-top:10px;
+  padding-right:18px;
+}
+ul li{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:5px;
+}
+.remove{
+  background:none;
+  border:none;
+  color:#b00020;
+  font-size:16px;
+  cursor:pointer;
+}
+.total-box{
+  background:#eee8f0;
+  padding:10px;
+  border-radius:8px;
+  margin-top:12px;
+}
+.save-btn{
   width:100%;
+  margin-top:20px;
   padding:12px;
+  font-size:16px;
   background:var(--purple);
   color:#fff;
   border:none;
   border-radius:10px;
-  font-size:16px;
   cursor:pointer;
 }
-
+.back-btn{
+  width:100%;
+  margin-top:10px;
+  padding:12px;
+  font-size:16px;
+  background:#ddd;
+  color:var(--purple);
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+}
 .success{
   display:none;
-  margin-top:15px;
   text-align:center;
+  margin-top:15px;
   color:green;
-  font-weight:bold;
 }
 </style>
 </head>
@@ -88,74 +133,127 @@ button{
   </div>
 </div>
 
+<label>المشروبات</label>
+<div class="drink-box">
+  <select id="drinkSelect">
+    <option value="">اختر المشروب</option>
+    <option>هوت شوكلت</option>
+    <option>سحلب</option>
+    <option>كرك</option>
+    <option>كاسترد</option>
+    <option>قهوة اللوز</option>
+    <option>قهوة عربية</option>
+    <option>شاهي أحمر</option>
+    <option>تمر محشي</option>
+    <option>معمول</option>
+  </select>
+  <button class="add-btn" onclick="addDrink()">+</button>
+</div>
+
+<ul id="drinkList"></ul>
+
 <label>العربة</label>
 <select id="cart">
-  <option value="">اختر</option>
+  <option value="">اختر العربة</option>
   <option>كبيرة</option>
   <option>وسط</option>
   <option>صغيرة</option>
+  <option>وسط + صغيرة</option>
 </select>
-
-<label>المشروبات (اكتبيها يدويًا)</label>
-<input id="drinks" placeholder="مثال: هوت شوكلت، كرك">
-
-<label>إجمالي الفاتورة</label>
-<input type="number" id="total" value="0">
-
-<label>الخصم</label>
-<input type="number" id="discount" value="0">
-
-<label>العربون</label>
-<input type="number" id="deposit" value="0">
 
 <label>التأمين</label>
 <input type="number" id="insurance" value="0">
 
-<button onclick="saveOrder()">حفظ الطلب</button>
+<label>العربون</label>
+<input type="number" id="depositInput" value="0" oninput="updateNet()">
 
-<div class="success" id="successMsg">✅ تم حفظ الطلب</div>
+<label>إجمالي الفاتورة</label>
+<input type="number" id="totalInput" value="0" oninput="updateNet()">
+
+<label>الخصم</label>
+<input type="number" id="discountInput" value="0" oninput="updateNet()">
+
+<div class="total-box">
+  <div>الصافي: <strong id="net">0</strong></div>
+</div>
+
+<button class="save-btn" onclick="saveOrder()">حفظ الطلب</button>
+<button class="back-btn" onclick="location.href='index.html'">العودة</button>
+
+<div class="success" id="successMsg">تم تسجيل الطلب وإرساله ✅</div>
 </div>
 
 <script>
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbwvVoy69UT6uCzHdUjLYomzYBMIFZeeEL_ipU8sqV-xd-txf7WSK-bdXjssu4hRVZ2x/exec";
+const SHEET_URL =
+"https://script.google.com/macros/s/AKfycbwvVoy69UT6uCzHdUjLYomzYBMIFZeeEL_ipU8sqV-xd-txf7WSK-bdXjssu4hRVZ2x/exec";
+
+let drinks=[];
+
+function addDrink(){
+  if(!drinkSelect.value) return;
+  drinks.push(drinkSelect.value);
+  renderDrinks();
+  drinkSelect.value="";
+}
+
+function renderDrinks(){
+  drinkList.innerHTML="";
+  drinks.forEach((d,i)=>{
+    drinkList.innerHTML+=`
+      <li>${d}
+        <button class="remove" onclick="removeDrink(${i})">✖</button>
+      </li>`;
+  });
+}
+
+function removeDrink(i){
+  drinks.splice(i,1);
+  renderDrinks();
+}
+
+function updateNet(){
+  const total=+totalInput.value||0;
+  const discount=+discountInput.value||0;
+  const deposit=+depositInput.value||0;
+  net.textContent=Math.max(total-discount-deposit,0);
+}
 
 function saveOrder(){
+  if(!name.value || !phone.value){
+    alert("الرجاء إدخال اسم العميل ورقم الجوال");
+    return;
+  }
 
-  const order = {
-    name: document.getElementById("name").value,
-    phone: document.getElementById("phone").value,
-    bookingDate: document.getElementById("bookingDate").value,
-    eventDate: document.getElementById("eventDate").value,
-    cart: document.getElementById("cart").value,
-    drinks: document.getElementById("drinks").value,
-    total: document.getElementById("total").value,
-    discount: document.getElementById("discount").value,
-    deposit: document.getElementById("deposit").value,
-    insurance: document.getElementById("insurance").value,
-    net:
-      Number(document.getElementById("total").value || 0) -
-      Number(document.getElementById("discount").value || 0) -
-      Number(document.getElementById("deposit").value || 0),
-    status: "جديد",
-    createdAt: new Date().toISOString()
+  const order={
+    name:name.value,
+    phone:phone.value,
+    bookingDate:bookingDate.value,
+    eventDate:eventDate.value,
+    drinks:drinks.join("، "),
+    cart:cart.value,
+    insurance:insurance.value,
+    deposit:depositInput.value,
+    total:totalInput.value,
+    discount:discountInput.value,
+    net:net.textContent,
+    status:"جديد"
   };
 
-  /* حفظ محلي */
-  const local = JSON.parse(localStorage.getItem("orders") || "[]");
+  // حفظ محلي
+  const local=JSON.parse(localStorage.getItem("orders")||"[]");
   local.push(order);
-  localStorage.setItem("orders", JSON.stringify(local));
+  localStorage.setItem("orders",JSON.stringify(local));
 
-  /* إرسال إلى Google Sheets */
-  fetch(SHEET_URL, {
-    method: "POST",
-    mode: "no-cors",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(order)
+  // إرسال إلى Google Sheets (بدون CORS مشاكل)
+  fetch(SHEET_URL,{
+    method:"POST",
+    mode:"no-cors",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify(order)
   });
 
-  document.getElementById("successMsg").style.display = "block";
+  successMsg.style.display="block";
+  setTimeout(()=>successMsg.style.display="none",2500);
 }
 </script>
 
