@@ -10,13 +10,11 @@
   --purple:#4b1f5c;
   --bg:#f4f1f6;
 }
-
 body{
   margin:0;
   font-family:Tahoma, Arial;
   background:var(--bg);
 }
-
 .container{
   max-width:600px;
   margin:30px auto;
@@ -24,18 +22,15 @@ body{
   padding:20px;
   border-radius:12px;
 }
-
 h2{
   text-align:center;
   color:var(--purple);
 }
-
 label{
   display:block;
   margin-top:12px;
   font-weight:bold;
 }
-
 input, select{
   width:100%;
   padding:10px;
@@ -43,22 +38,16 @@ input, select{
   border-radius:8px;
   border:1px solid #ccc;
 }
-
 .row{
   display:flex;
   gap:10px;
 }
-
-.row > div{
-  flex:1;
-}
-
+.row > div{ flex:1; }
 .drink-box{
   display:flex;
   gap:10px;
   margin-top:6px;
 }
-
 .add-btn{
   background:var(--purple);
   color:#fff;
@@ -68,19 +57,16 @@ input, select{
   font-size:20px;
   cursor:pointer;
 }
-
 ul{
   margin-top:10px;
   padding-right:18px;
 }
-
 ul li{
   display:flex;
   justify-content:space-between;
   align-items:center;
   margin-bottom:5px;
 }
-
 .remove{
   background:none;
   border:none;
@@ -88,14 +74,12 @@ ul li{
   font-size:16px;
   cursor:pointer;
 }
-
 .total-box{
   background:#eee8f0;
   padding:10px;
   border-radius:8px;
   margin-top:12px;
 }
-
 .save-btn{
   width:100%;
   margin-top:20px;
@@ -107,7 +91,6 @@ ul li{
   border-radius:10px;
   cursor:pointer;
 }
-
 .back-btn{
   width:100%;
   margin-top:10px;
@@ -119,7 +102,6 @@ ul li{
   border-radius:10px;
   cursor:pointer;
 }
-
 .success{
   display:none;
   text-align:center;
@@ -183,13 +165,13 @@ ul li{
 <input type="number" id="insurance" value="0">
 
 <label>العربون</label>
-<input type="number" id="deposit" value="0" oninput="updateNet()">
+<input type="number" id="depositInput" value="0" oninput="updateNet()">
 
 <label>إجمالي الفاتورة</label>
 <input type="number" id="totalInput" value="0" oninput="updateNet()">
 
 <label>الخصم</label>
-<input type="number" id="discount" value="0" oninput="updateNet()">
+<input type="number" id="discountInput" value="0" oninput="updateNet()">
 
 <div class="total-box">
   <div>الصافي: <strong id="net">0</strong></div>
@@ -208,7 +190,6 @@ function addDrink(){
   const select=document.getElementById("drinkSelect");
   const name=select.value;
   if(!name) return;
-
   drinks.push(name);
   renderDrinks();
   select.value="";
@@ -220,7 +201,7 @@ function renderDrinks(){
   drinks.forEach((d,i)=>{
     const li=document.createElement("li");
     li.innerHTML=`<span>${d}</span>
-    <button class="remove" onclick="removeDrink(${i})">✖</button>`;
+      <button class="remove" onclick="removeDrink(${i})">✖</button>`;
     list.appendChild(li);
   });
 }
@@ -231,26 +212,27 @@ function removeDrink(i){
 }
 
 function updateNet(){
-  const total=Number(totalInput.value||0);
-  const discount=Number(discount.value||0);
-  const deposit=Number(deposit.value||0);
-  const net=total-discount-deposit;
-  document.getElementById("net").textContent=net<0?0:net;
+  const total = Number(document.getElementById("totalInput").value || 0);
+  const discount = Number(document.getElementById("discountInput").value || 0);
+  const deposit = Number(document.getElementById("depositInput").value || 0);
+
+  const net = total - discount - deposit;
+  document.getElementById("net").textContent = net < 0 ? 0 : net;
 }
 
 function saveOrder(){
   const order={
-    name:name.value,
-    phone:phone.value,
-    bookingDate:bookingDate.value,
-    eventDate:eventDate.value,
+    name:document.getElementById("name").value,
+    phone:document.getElementById("phone").value,
+    bookingDate:document.getElementById("bookingDate").value,
+    eventDate:document.getElementById("eventDate").value,
     drinks:drinks,
-    cart:cart.value,
-    insurance:insurance.value,
-    deposit:deposit.value,
-    total:totalInput.value,
-    discount:discount.value,
-    net:net.textContent,
+    cart:document.getElementById("cart").value,
+    insurance:document.getElementById("insurance").value,
+    deposit:document.getElementById("depositInput").value,
+    total:document.getElementById("totalInput").value,
+    discount:document.getElementById("discountInput").value,
+    net:document.getElementById("net").textContent,
     status:"جديد"
   };
 
@@ -258,7 +240,7 @@ function saveOrder(){
   orders.push(order);
   localStorage.setItem("orders",JSON.stringify(orders));
 
-  successMsg.style.display="block";
+  document.getElementById("successMsg").style.display="block";
   setTimeout(()=>successMsg.style.display="none",2000);
 }
 </script>
