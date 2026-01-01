@@ -25,18 +25,28 @@ input,select{
   border-radius:8px; border:1px solid #ccc;
 }
 button{
-  width:100%; margin-top:15px; padding:12px;
-  background:#4b1f5c; color:#fff;
+  width:100%; margin-top:12px; padding:12px;
   border:none; border-radius:10px;
-  font-size:16px;
+  font-size:16px; cursor:pointer;
 }
+.save{ background:#4b1f5c; color:#fff; }
+.back{ background:#ddd; color:#4b1f5c; }
 ul{ padding-right:20px; }
 li{ display:flex; justify-content:space-between; }
 .remove{ background:none; border:none; color:red; }
+.net{ background:#eee; padding:10px; border-radius:8px; margin-top:10px; }
 </style>
 </head>
 
 <body>
+
+<script>
+// 🔐 أي تحديث صفحة يرجع لتسجيل الدخول
+if(!sessionStorage.getItem("loggedIn")){
+  location.href="login.html";
+}
+</script>
+
 <div class="container">
 <h2>تسجيل طلب جديد</h2>
 
@@ -54,21 +64,32 @@ li{ display:flex; justify-content:space-between; }
 
 <label>المشروبات</label>
 <select id="drinkSelect">
-  <option value="">اختر</option>
+  <option value="">اختر المشروب</option>
   <option>هوت شوكلت</option>
   <option>سحلب</option>
   <option>كرك</option>
+  <option>كاسترد</option>
   <option>قهوة عربية</option>
+  <option>قهوة فرنسية</option>
+  <option>قهوة اللوز</option>
+  <option>شاهي أحمر</option>
+  <option>شاهي كرك</option>
+  <option>شاهي أخضر</option>
+  <option>تمر</option>
+  <option>تمر محشي</option>
+  <option>معمول</option>
 </select>
 <button onclick="addDrink()">إضافة مشروب</button>
+
 <ul id="drinkList"></ul>
 
 <label>العربة</label>
 <select id="cart">
-  <option value="">اختر</option>
+  <option value="">اختر العربة</option>
   <option>كبيرة</option>
   <option>وسط</option>
   <option>صغيرة</option>
+  <option>وسط + صغيرة</option>
 </select>
 
 <label>التأمين</label>
@@ -77,18 +98,22 @@ li{ display:flex; justify-content:space-between; }
 <label>العربون</label>
 <input type="number" id="deposit" value="0" oninput="calc()">
 
-<label>الإجمالي</label>
+<label>إجمالي الفاتورة</label>
 <input type="number" id="total" value="0" oninput="calc()">
 
 <label>الخصم</label>
 <input type="number" id="discount" value="0" oninput="calc()">
 
-<p>الصافي: <strong id="net">0</strong></p>
+<div class="net">
+الصافي: <strong id="net">0</strong>
+</div>
 
-<button onclick="saveOrder()">حفظ الطلب</button>
+<button class="save" onclick="saveOrder()">حفظ الطلب</button>
+<button class="back" onclick="location.href='index.html'">العودة</button>
 </div>
 
 <script>
+// 🔗 رابط Google Apps Script
 const SHEET_URL = "https://script.google.com/macros/s/AKfycbybvabnb_dGz4jQBmK5pasaO2k0UK4e_hfGLroQT9uC-4MRfZygnmudaz9TSbo1zC4r/exec";
 
 let drinks=[];
@@ -102,19 +127,23 @@ function addDrink(){
 function render(){
   drinkList.innerHTML="";
   drinks.forEach((d,i)=>{
-    drinkList.innerHTML+=`<li>${d}<button class="remove" onclick="del(${i})">✖</button></li>`;
+    drinkList.innerHTML+=`
+      <li>${d}
+        <button class="remove" onclick="del(${i})">✖</button>
+      </li>`;
   });
 }
 
 function del(i){
-  drinks.splice(i,1); render();
+  drinks.splice(i,1);
+  render();
 }
 
 function calc(){
-  net.textContent = Math.max(
-    (total.value||0) - (discount.value||0) - (deposit.value||0),
-    0
-  );
+  const t = +total.value || 0;
+  const d = +discount.value || 0;
+  const a = +deposit.value || 0;
+  net.textContent = Math.max(t - d - a, 0);
 }
 
 function saveOrder(){
@@ -123,7 +152,7 @@ function saveOrder(){
     phone:phone.value,
     bookingDate:bookingDate.value,
     eventDate:eventDate.value,
-    drinks:drinks,
+    drinks:drinks.join("، "),
     cart:cart.value,
     insurance:insurance.value,
     deposit:deposit.value,
@@ -135,11 +164,13 @@ function saveOrder(){
 
   fetch(SHEET_URL,{
     method:"POST",
+    headers:{ "Content-Type":"application/json" },
     body:JSON.stringify(order)
   })
-  .then(()=>alert("تم حفظ الطلب ✅"))
-  .catch(()=>alert("فشل الإرسال ❌"));
+  .then(()=>alert("تم حفظ الطلب بنجاح ✅"))
+  .catch(()=>alert("حصل خطأ في الإرسال ❌"));
 }
 </script>
+
 </body>
 </html>
