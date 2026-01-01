@@ -2,104 +2,49 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>إدخال طلب</title>
+<title>تسجيل طلب</title>
 <style>
-body{font-family:Arial;background:#f5f5f5;padding:15px}
-.card{background:#fff;padding:15px;border-radius:8px}
-input,select,button{width:100%;padding:10px;margin-top:8px}
-button{background:#16a34a;color:#fff;border:none}
-.notice{
-  background:#dcfce7;
-  color:#166534;
-  padding:10px;
-  margin-top:10px;
-  display:none;
-}
+body{font-family:Tahoma;background:#f5f5f5}
+.box{max-width:500px;margin:auto;background:#fff;padding:20px;border-radius:10px}
+button{background:#4b1d5a;color:#fff;border:none;padding:10px;width:100%;border-radius:8px}
+input,select{width:100%;padding:10px;margin:5px 0}
 </style>
 </head>
 <body>
 
-<div class="card">
+<div class="box">
 <h3>تسجيل طلب جديد</h3>
 
 <input id="name" placeholder="اسم العميل">
-<input id="phone" placeholder="رقم الجوال">
-<input type="date" id="date">
-
-<select id="cart">
-  <option value="">نوع العربة</option>
-  <option>كبيرة</option>
-  <option>وسط</option>
-  <option>صغيرة</option>
-  <option>وسط وصغيرة</option>
-</select>
-
-<hr>
-
 <select id="drink">
-  <option value="">اختر مشروب</option>
   <option>هوت شوكلت</option>
   <option>سحلب</option>
   <option>كرك</option>
-  <option>قهوة عربية</option>
 </select>
-<button type="button" onclick="addDrink()">➕ إضافة مشروب</button>
-<div id="drinks"></div>
+<input type="number" id="total" placeholder="الإجمالي">
+<input type="number" id="discount" placeholder="الخصم">
 
-<hr>
+<button onclick="save()">حفظ</button>
+<p id="msg"></p>
 
-<input id="total" placeholder="إجمالي الفاتورة">
-<input id="discount" placeholder="الخصم" value="0">
-<input id="deposit" placeholder="العربون" value="0">
-<input id="insurance" placeholder="التأمين" value="0">
-
-<button onclick="save()">تأكيد الحجز</button>
-
-<div class="notice" id="ok">✅ تم تسجيل الطلب بنجاح</div>
-
-<a href="orders.html">عرض الطلبات</a>
+<a href="index.html">رجوع</a>
 </div>
 
 <script>
-let drinks=[];
-
-function addDrink(){
-  let d=document.getElementById("drink").value;
-  if(!d)return;
-  drinks.push(d);
-  render();
-}
-function render(){
-  drinksDiv=document.getElementById("drinks");
-  drinksDiv.innerHTML="";
-  drinks.forEach((d,i)=>{
-    drinksDiv.innerHTML+=`${d} <button onclick="remove(${i})">✖</button><br>`;
-  });
-}
-function remove(i){
-  drinks.splice(i,1);
-  render();
-}
 function save(){
-  let data={
-    name:name.value,
-    phone:phone.value,
-    date:date.value,
-    cart:cart.value,
-    drinks:drinks,
-    total:total.value,
-    discount:discount.value,
-    deposit:deposit.value,
-    insurance:insurance.value,
-    done:false
-  };
   let orders=JSON.parse(localStorage.getItem("orders")||"[]");
-  orders.push(data);
+  orders.push({
+    name:name.value,
+    drink:drink.value,
+    total:+total.value,
+    discount:+discount.value,
+    net:+total.value-+discount.value,
+    done:false
+  });
   localStorage.setItem("orders",JSON.stringify(orders));
-  ok.style.display="block";
-  setTimeout(()=>ok.style.display="none",2000);
+  msg.innerText="تم تسجيل الطلب بنجاح";
 }
 </script>
+
 </body>
 </html>
