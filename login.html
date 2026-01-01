@@ -42,6 +42,7 @@ input{width:100%;padding:10px;margin:10px 0}
 <script>
 function login(){
   if(document.getElementById("pass").value==="1234"){
+    sessionStorage.setItem("loggedIn","true");
     location.href="index.html";
   }else{
     err.innerText="كلمة المرور غير صحيحة";
