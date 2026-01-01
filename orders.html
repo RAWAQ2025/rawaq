@@ -19,77 +19,20 @@ if(!sessionStorage.getItem("loggedIn")){
   --yellow:#fff3cd;
   --green:#d4edda;
 }
-body{
-  margin:0;
-  font-family:Tahoma,Arial;
-  background:var(--bg);
-}
-.container{
-  max-width:95%;
-  margin:20px auto;
-  background:#fff;
-  padding:15px;
-  border-radius:12px;
-}
-h2{
-  text-align:center;
-  color:var(--purple);
-}
-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:15px;
-  font-size:14px;
-}
-th,td{
-  border:1px solid #ddd;
-  padding:8px;
-  text-align:center;
-  vertical-align:top;
-}
-th{
-  background:var(--purple);
-  color:#fff;
-}
-details summary{
-  cursor:pointer;
-  color:var(--purple);
-  font-weight:bold;
-}
-details ul{
-  padding-right:18px;
-  margin:6px 0 0;
-  text-align:right;
-}
-.client-box,.money-box{
-  line-height:1.6;
-  font-size:13px;
-}
-.btn{
-  border:none;
-  padding:5px 8px;
-  border-radius:6px;
-  cursor:pointer;
-  font-size:12px;
-  margin:2px;
-}
+body{margin:0;font-family:Tahoma,Arial;background:var(--bg);}
+.container{max-width:95%;margin:20px auto;background:#fff;padding:15px;border-radius:12px;}
+h2{text-align:center;color:var(--purple);}
+table{width:100%;border-collapse:collapse;margin-top:15px;font-size:14px;}
+th,td{border:1px solid #ddd;padding:8px;text-align:center;vertical-align:top;}
+th{background:var(--purple);color:#fff;}
+details summary{cursor:pointer;color:var(--purple);font-weight:bold;}
+details ul{padding-right:18px;margin:6px 0 0;text-align:right;}
+.client-box,.money-box{line-height:1.6;font-size:13px;}
+.btn{border:none;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:12px;margin:2px;}
 .done{background:#4b1f5c;color:#fff;}
 .delete{background:#dc3545;color:#fff;}
-.back-btn{
-  margin-top:15px;
-  width:100%;
-  padding:12px;
-  background:#ddd;
-  color:#4b1f5c;
-  border:none;
-  border-radius:10px;
-  cursor:pointer;
-}
-.empty{
-  text-align:center;
-  margin-top:20px;
-  color:#777;
-}
+.back-btn{margin-top:15px;width:100%;padding:12px;background:#ddd;color:#4b1f5c;border:none;border-radius:10px;cursor:pointer;}
+.empty{text-align:center;margin-top:20px;color:#777;}
 </style>
 </head>
 
@@ -114,13 +57,8 @@ details ul{
 <tbody id="tableBody"></tbody>
 </table>
 
-<div id="emptyMsg" class="empty" style="display:none">
-  لا توجد طلبات
-</div>
-
-<button class="back-btn" onclick="location.href='index.html'">
-  العودة
-</button>
+<div id="emptyMsg" class="empty" style="display:none">لا توجد طلبات</div>
+<button class="back-btn" onclick="location.href='index.html'">العودة</button>
 </div>
 
 <script>
@@ -128,7 +66,6 @@ let orders = JSON.parse(localStorage.getItem("orders") || "[]");
 const body = document.getElementById("tableBody");
 const emptyMsg = document.getElementById("emptyMsg");
 
-/* ترتيب حسب تاريخ المناسبة */
 orders.sort((a,b)=> new Date(a.eventDate || 0) - new Date(b.eventDate || 0));
 
 let today = new Date();
@@ -139,18 +76,14 @@ orders.forEach((order, index)=>{
   if(order.status === "جديد"){
     hasOrders = true;
 
-    const eventDate = new Date(order.eventDate);
-    const diffDays = Math.ceil((eventDate - today)/(1000*60*60*24));
+    // ✅ الحل هنا: قراءة الاسم من أي مفتاح موجود
+    const clientName =
+      order.name ||
+      order.client ||
+      order.clientName ||
+      order.customer ||
+      "";
 
-    let color =
-      diffDays <= 2 ? "var(--red)" :
-      diffDays <= 5 ? "var(--yellow)" :
-      "var(--green)";
-
-    /* ✅ الاسم كما هو فقط */
-    const clientName = order.name || "";
-
-    /* المشروبات */
     const drinksArray =
       typeof order.drinks === "string"
       ? order.drinks.split("،")
@@ -160,6 +93,13 @@ orders.forEach((order, index)=>{
       .filter(d => d && d.trim() !== "")
       .map(d=>`<li>${d}</li>`)
       .join("");
+
+    const eventDate = new Date(order.eventDate);
+    const diffDays = Math.ceil((eventDate - today)/(1000*60*60*24));
+    let color =
+      diffDays <= 2 ? "var(--red)" :
+      diffDays <= 5 ? "var(--yellow)" :
+      "var(--green)";
 
     const tr = document.createElement("tr");
     tr.style.background = color;
@@ -191,9 +131,7 @@ orders.forEach((order, index)=>{
   }
 });
 
-if(!hasOrders){
-  emptyMsg.style.display="block";
-}
+if(!hasOrders) emptyMsg.style.display="block";
 
 function markDone(i){
   orders[i].status = "تم";
