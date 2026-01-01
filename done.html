@@ -1,208 +1,148 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>الطلبات المنجزة | رواق</title>
+<meta charset="UTF-8">
+<title>الطلبات المنجزة | رواق</title>
 
-  <style>
-    body{
-      font-family: Tahoma, Arial;
-      background:#f7f7f7;
-      padding:20px;
-    }
-    h2{
-      color:#4b1d5a;
-      text-align:center;
-      margin-bottom:20px;
-    }
-    .box{
-      background:#fff;
-      padding:15px;
-      border-radius:10px;
-      margin-bottom:15px;
-      box-shadow:0 2px 5px rgba(0,0,0,0.1);
-      line-height:1.8;
-    }
-    .box strong{
-      color:#4b1d5a;
-      font-size:16px;
-    }
-    button{
-      margin-top:10px;
-      padding:8px 15px;
-      background:#4b1d5a;
-      color:#fff;
-      border:none;
-      border-radius:6px;
-      cursor:pointer;
-      font-size:14px;
-    }
-    a{
-      display:inline-block;
-      margin-top:20px;
-      color:#4b1d5a;
-      text-decoration:none;
-      font-weight:bold;
-    }
-    .empty{
-      text-align:center;
-      color:#777;
-    }
-  </style>
+<style>
+body{
+  font-family: Tahoma;
+  background:#f7f7f7;
+  padding:20px;
+}
+h2{
+  color:#4b1d5a;
+  text-align:center;
+}
+.box{
+  background:#fff;
+  padding:15px;
+  border-radius:10px;
+  margin-bottom:15px;
+  box-shadow:0 2px 5px rgba(0,0,0,.1);
+  line-height:1.8;
+}
+button{
+  margin-top:10px;
+  padding:8px 16px;
+  background:#4b1d5a;
+  color:#fff;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+a{
+  display:inline-block;
+  margin-top:20px;
+  color:#4b1d5a;
+  font-weight:bold;
+  text-decoration:none;
+}
+.empty{
+  text-align:center;
+  color:#777;
+}
+</style>
 </head>
 
 <body>
 
 <h2>الطلبات التي تم إنجازها</h2>
-
 <div id="completedOrders"></div>
-
-<a href="index.html">⬅ الرجوع إلى الصفحة الرئيسية</a>
+<a href="index.html">⬅ الرجوع للرئيسية</a>
 
 <script>
-/* ===== نجيب الطلبات المنجزة من orders ===== */
-const allOrders = JSON.parse(localStorage.getItem("orders")) || [];
-const completed = allOrders.filter(o => o.status === "تم");
-
-const container = document.getElementById("completedOrders");
+const orders = JSON.parse(localStorage.getItem("orders")) || [];
+const completed = orders.filter(o => o.status === "تم");
+const box = document.getElementById("completedOrders");
 
 if(completed.length === 0){
-  container.innerHTML = '<p class="empty">لا توجد طلبات منجزة حالياً</p>';
+  box.innerHTML = '<p class="empty">لا توجد طلبات منجزة</p>';
 }else{
-  completed.forEach((order, index) => {
-    container.innerHTML += `
+  completed.forEach((o,i)=>{
+    box.innerHTML += `
       <div class="box">
-        <strong>${index + 1}. ${order.name}</strong><br>
-        رقم الجوال: ${order.phone}<br>
-        تاريخ المناسبة: ${order.eventDate}<br>
-        العربة: ${order.cart}<br>
-        المشروبات: ${(order.drinks || []).join(" ، ")}<br>
-        العربون: ${order.deposit}<br>
-        التأمين: ${order.insurance}<br>
-        الخصم: ${order.discount}<br>
-        الصافي: <strong>${order.net}</strong><br>
+        <strong>${i+1}. ${o.name}</strong><br>
+        الجوال: ${o.phone}<br>
+        تاريخ المناسبة: ${o.eventDate}<br>
+        العربة: ${o.cart}<br>
+        المشروبات: ${(o.drinks||[]).join(" ، ")}<br>
+        العربون: ${o.deposit}<br>
+        التأمين: ${o.insurance}<br>
+        الخصم: ${o.discount}<br>
+        <strong>الصافي: ${o.net}</strong><br>
 
-        <button onclick="openInvoice(${index})">🧾 فاتورة</button>
+        <button onclick="openInvoice(${i})">🧾 عرض الفاتورة</button>
       </div>
     `;
   });
 }
 
-/* ===== دالة الفاتورة ===== */
-function openInvoice(index){
-  const o = completed[index];
-  const invoiceNo = index + 1;
+/* ===== الفاتورة ===== */
+function openInvoice(i){
+  const o = completed[i];
+
+  let invNo = Number(localStorage.getItem("invoiceNo") || 0) + 1;
+  localStorage.setItem("invoiceNo", invNo);
+
   const today = new Date().toLocaleDateString("ar-SA");
+  const w = window.open("", "_blank");
 
-  const win = window.open("", "_blank");
-
-  win.document.write(`
+  w.document.write(`
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <title>فاتورة رواق</title>
 <style>
-body{
-  font-family:Tahoma;
-  background:#f3f3f3;
-  margin:0;
-}
-.invoice{
-  max-width:700px;
-  margin:30px auto;
-  background:#fff;
-  padding:25px;
-  border-radius:12px;
-}
-.header{
-  text-align:center;
-  border-bottom:2px solid #4b1d5a;
-  padding-bottom:15px;
-}
-.header h1{
-  margin:0;
-  color:#4b1d5a;
-}
-.meta{
-  display:flex;
-  justify-content:space-between;
-  margin:15px 0;
-  font-size:14px;
-}
-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:20px;
-}
-th, td{
-  padding:10px;
-  border:1px solid #ddd;
-  text-align:center;
-}
-th{
-  background:#4b1d5a;
-  color:#fff;
-}
-.total{
-  background:#f6eef8;
-  font-weight:bold;
-}
-.net{
-  background:#4b1d5a;
-  color:#fff;
-  font-size:18px;
-}
-.footer{
-  margin-top:25px;
-  text-align:center;
-}
-button{
-  padding:12px 25px;
-  background:#4b1d5a;
-  color:#fff;
-  border:none;
-  border-radius:8px;
-  font-size:16px;
-}
-@media print{
-  button{display:none;}
-}
+body{font-family:Tahoma;background:#eee;margin:0}
+.invoice{max-width:720px;margin:30px auto;background:#fff;padding:25px;border-radius:12px}
+.header{text-align:center;border-bottom:2px solid #4b1d5a;padding-bottom:15px}
+.header img{max-width:120px;margin-bottom:10px}
+.header h1{margin:0;color:#4b1d5a}
+.meta{display:flex;justify-content:space-between;margin:15px 0}
+table{width:100%;border-collapse:collapse}
+th,td{border:1px solid #ddd;padding:10px;text-align:center}
+th{background:#4b1d5a;color:#fff}
+.total{background:#f6eef8;font-weight:bold}
+.net{background:#4b1d5a;color:#fff;font-size:18px}
+button{margin-top:20px;padding:12px 25px;background:#4b1d5a;color:#fff;border:none;border-radius:8px}
+@media print{button{display:none}}
 </style>
 </head>
 
 <body>
 <div class="invoice">
 
-  <div class="header">
-    <h1>فاتورة رواق</h1>
-    <div>إدارة الحجوزات</div>
-  </div>
+<div class="header">
+  <!-- حط مسار الشعار هنا -->
+  <!-- <img src="logo.png"> -->
+  <h1>فاتورة رواق</h1>
+  <div>إدارة الحجوزات</div>
+</div>
 
-  <div class="meta">
-    <div>رقم الفاتورة: ${invoiceNo}</div>
-    <div>تاريخ الإصدار: ${today}</div>
-  </div>
+<div class="meta">
+  <div>رقم الفاتورة: ${invNo}</div>
+  <div>التاريخ: ${today}</div>
+</div>
 
-  <table>
-    <tr><th>البيان</th><th>التفاصيل</th></tr>
-    <tr><td>اسم العميل</td><td>${o.name}</td></tr>
-    <tr><td>رقم الجوال</td><td>${o.phone}</td></tr>
-    <tr><td>تاريخ المناسبة</td><td>${o.eventDate}</td></tr>
-    <tr><td>العربة</td><td>${o.cart}</td></tr>
-    <tr><td>المشروبات</td><td>${(o.drinks||[]).join(" ، ")}</td></tr>
+<table>
+<tr><th>البيان</th><th>التفاصيل</th></tr>
+<tr><td>اسم العميل</td><td>${o.name}</td></tr>
+<tr><td>رقم الجوال</td><td>${o.phone}</td></tr>
+<tr><td>تاريخ المناسبة</td><td>${o.eventDate}</td></tr>
+<tr><td>العربة</td><td>${o.cart}</td></tr>
+<tr><td>المشروبات</td><td>${(o.drinks||[]).join(" ، ")}</td></tr>
 
-    <tr class="total"><td>إجمالي الفاتورة</td><td>${o.total}</td></tr>
-    <tr class="total"><td>الخصم</td><td>${o.discount}</td></tr>
-    <tr class="total"><td>العربون</td><td>${o.deposit}</td></tr>
-    <tr class="total"><td>التأمين</td><td>${o.insurance}</td></tr>
+<tr class="total"><td>إجمالي الفاتورة</td><td>${o.total}</td></tr>
+<tr class="total"><td>الخصم</td><td>${o.discount}</td></tr>
+<tr class="total"><td>العربون</td><td>${o.deposit}</td></tr>
+<tr class="total"><td>التأمين</td><td>${o.insurance}</td></tr>
 
-    <tr class="net"><td>الصافي</td><td>${o.net}</td></tr>
-  </table>
+<tr class="net"><td>الصافي</td><td>${o.net}</td></tr>
+</table>
 
-  <div class="footer">
-    <button onclick="window.print()">🖨️ طباعة الفاتورة</button>
-  </div>
+<button onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
 
 </div>
 </body>
