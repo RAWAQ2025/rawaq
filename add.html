@@ -41,7 +41,7 @@ li{ display:flex; justify-content:space-between; }
 <body>
 
 <script>
-// 🔐 أي تحديث صفحة يرجع لتسجيل الدخول
+// 🔐 حماية الصفحة
 if(!sessionStorage.getItem("loggedIn")){
   location.href="login.html";
 }
@@ -148,27 +148,36 @@ function calc(){
 
 function saveOrder(){
   const order={
-    name:name.value,
-    phone:phone.value,
-    bookingDate:bookingDate.value,
-    eventDate:eventDate.value,
-    drinks:drinks.join("، "),
-    cart:cart.value,
-    insurance:insurance.value,
-    deposit:deposit.value,
-    total:total.value,
-    discount:discount.value,
-    net:net.textContent,
-    status:"جديد"
+    name: name.value,
+    phone: phone.value,
+    bookingDate: bookingDate.value,
+    eventDate: eventDate.value,
+    drinks: drinks.join("، "),
+    cart: cart.value,
+    insurance: insurance.value,
+    deposit: deposit.value,
+    discount: discount.value,
+    total: total.value,
+    net: net.textContent,
+    status: "جديد"
   };
 
+  /* ✅ 1) حفظ الطلب محليًا */
+  const orders = JSON.parse(localStorage.getItem("orders") || "[]");
+  orders.push(order);
+  localStorage.setItem("orders", JSON.stringify(orders));
+
+  /* ✅ 2) إرساله لقوقل */
   fetch(SHEET_URL,{
     method:"POST",
+    mode:"no-cors",
     headers:{ "Content-Type":"application/json" },
-    body:JSON.stringify(order)
-  })
-  .then(()=>alert("تم حفظ الطلب بنجاح ✅"))
-  .catch(()=>alert("حصل خطأ في الإرسال ❌"));
+    body: JSON.stringify(order)
+  });
+
+  /* ✅ 3) الانتقال لعرض الطلبات */
+  alert("تم حفظ الطلب بنجاح ✅");
+  location.href = "orders.html"; // عدلي الاسم إذا صفحتك مختلفة
 }
 </script>
 
