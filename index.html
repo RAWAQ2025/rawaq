@@ -39,11 +39,7 @@ button {
   color: white;
   border: none;
   cursor: pointer;
-  margin-top: 15px;
-}
-
-button:hover {
-  opacity: 0.9;
+  margin-top: 10px;
 }
 
 table {
@@ -120,7 +116,7 @@ th, td {
 <input type="number" id="insurance">
 
 <label>إجمالي الفاتورة</label>
-<input type="number" id="total">
+<input type="number" id="total" required>
 
 <button type="submit">تأكيد الحجز</button>
 
@@ -130,7 +126,7 @@ th, td {
 <thead>
 <tr>
 <th>العميل</th>
-<th>المناسبة</th>
+<th>تاريخ المناسبة</th>
 <th>المشروبات</th>
 <th>العربة</th>
 <th>الإجمالي</th>
@@ -165,10 +161,15 @@ function removeDrink(i) {
   renderDrinks();
 }
 
-document.getElementById("bookingForm").onsubmit = function(e) {
+document.getElementById("bookingForm").addEventListener("submit", function(e) {
   e.preventDefault();
 
-  const eventDate = new Date(document.getElementById("eventDate").value);
+  const name = document.getElementById("clientName").value;
+  const eventDateValue = document.getElementById("eventDate").value;
+  const cart = document.getElementById("cartSize").value;
+  const total = document.getElementById("total").value;
+
+  const eventDate = new Date(eventDateValue);
   const today = new Date();
   const diffDays = Math.ceil((eventDate - today) / (1000 * 60 * 60 * 24));
 
@@ -178,11 +179,11 @@ document.getElementById("bookingForm").onsubmit = function(e) {
 
   const row = `
   <tr class="${color}">
-    <td>${clientName.value}</td>
+    <td>${name}</td>
     <td>${eventDate.toLocaleDateString()}</td>
     <td>${drinks.join(", ")}</td>
-    <td>${cartSize.value}</td>
-    <td>${total.value}</td>
+    <td>${cart}</td>
+    <td>${total}</td>
     <td><button onclick="window.print()">طباعة</button></td>
     <td><input type="checkbox"></td>
   </tr>
@@ -193,7 +194,7 @@ document.getElementById("bookingForm").onsubmit = function(e) {
   this.reset();
   drinks = [];
   renderDrinks();
-};
+});
 </script>
 
 </body>
