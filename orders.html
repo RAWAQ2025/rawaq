@@ -74,7 +74,11 @@ function postAction(payload){
     body: JSON.stringify(payload)
   });
 }
-
+  function formatDate(d){
+  if(!d) return "";
+  const date = new Date(d);
+  return date.toLocaleDateString("ar-SA");
+}
 fetch(SHEET_URL)
 .then(r => r.json())
 .then(data => {
@@ -92,8 +96,8 @@ fetch(SHEET_URL)
       <tr style="background:${color}">
         <td>${i+1}</td>
         <td class="client">${o.name || ""}<br>${o.phone || ""}</td>
-        <td>${o.bookingDate || ""}</td>
-        <td>${o.eventDate || ""}</td>
+      <td>${formatDate(o.eventDate)}</td>
+<td>${formatDate(o.bookingDate)}</td>
         <td>${o.drinks || ""}</td>
         <td>${o.cart || ""}</td>
         <td>عربون: ${o.deposit}<br>تأمين: ${o.insurance}</td>
