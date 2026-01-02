@@ -6,14 +6,12 @@
 <title>عرض الطلبات - رواق</title>
 
 <script>
-// 🔐 حماية الجلسة (5 دقائق)
+/* 🔐 حماية + انتهاء الجلسة 5 دقائق */
 const MAX_TIME = 5 * 60 * 1000;
-const loggedIn = sessionStorage.getItem("loggedIn");
 const lastLogin = sessionStorage.getItem("lastLogin");
-
-if(!loggedIn || !lastLogin || (Date.now() - lastLogin > MAX_TIME)){
+if(!lastLogin || Date.now() - lastLogin > MAX_TIME){
   sessionStorage.clear();
-  location.href = "login.html";
+  location.href="login.html";
 }
 </script>
 
@@ -32,11 +30,14 @@ table{width:100%;border-collapse:collapse;margin-top:15px;font-size:14px;}
 th,td{border:1px solid #ddd;padding:8px;text-align:center;vertical-align:top;}
 th{background:var(--purple);color:#fff;}
 .client{line-height:1.6}
+.money{line-height:1.6;font-size:13px}
 .btn{border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:12px;margin:2px}
 .done{background:#4b1f5c;color:#fff}
 .edit{background:#ffc107}
 .delete{background:#dc3545;color:#fff}
-.back{margin-top:15px;width:100%;padding:12px;border:none;border-radius:10px}
+.back{margin-top:15px;width:100%;padding:12px;background:#ddd;border:none;border-radius:10px}
+.empty{text-align:center;margin-top:20px;color:#777}
+details summary{cursor:pointer;color:var(--purple);font-weight:bold}
 </style>
 </head>
 
@@ -47,58 +48,123 @@ th{background:var(--purple);color:#fff;}
 <table>
 <thead>
 <tr>
-<th>#</th>
-<th>العميل</th>
-<th>تاريخ الحجز</th>
-<th>تاريخ المناسبة</th>
-<th>المشروبات</th>
-<th>العربة</th>
-<th>العربون / التأمين</th>
-<th>الصافي</th>
-<th>إجراءات</th>
+  <th>#</th>
+  <th>العميل</th>
+  <th>تاريخ الحجز</th>
+  <th>تاريخ المناسبة</th>
+  <th>المشروبات</th>
+  <th>العربة</th>
+  <th>العربون / التأمين</th>
+  <th>الصافي</th>
+  <th>إجراءات</th>
 </tr>
 </thead>
-<tbody id="body"></tbody>
+<tbody id="tableBody"></tbody>
 </table>
 
+<div id="emptyMsg" class="empty" style="display:none">لا توجد طلبات</div>
 <button class="back" onclick="location.href='index.html'">العودة</button>
 </div>
 
 <script>
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbwf6_9xR4_dTjX1NxrXmg9HIh55wDGcav7YHu4OOw_OQtiLg6no4WwlV6SipxZ5FdwS/exec";
+const SHEET_URL = "ضع_رابط_قوقل_هنا";
 
+const body = document.getElementById("tableBody");
+const emptyMsg = document.getElementById("emptyMsg");
+
+/* 📥 جلب الطلبات من قوقل */
 fetch(SHEET_URL)
-.then(r => r.json())
-.then(data => {
-  const body = document.getElementById("body");
+.then(r=>r.json())
+.then(data=>{
+  const orders = data.filter(o=>o.status==="جديد");
+
+  if(orders.length===0){
+    emptyMsg.style.display="block";
+    return;
+  }
+
   const today = new Date();
 
-  data
-    .filter(o => o.status === "جديد")
-    .sort((a,b)=> new Date(a.eventDate) - new Date(b.eventDate))
-    .forEach((o,i)=>{
-      const diff = Math.ceil((new Date(o.eventDate)-today)/(1000*60*60*24));
-      const color = diff<=2 ? "var(--red)" : diff<=5 ? "var(--yellow)" : "var(--green)";
+  orders.sort((a,b)=> new Date(a.eventDate) - new Date(b.eventDate));
 
-      body.innerHTML += `
-      <tr style="background:${color}">
-        <td>${i+1}</td>
-        <td class="client">${o.name || ""}<br>${o.phone || ""}</td>
-        <td>${o.bookingDate || ""}</td>
-        <td>${o.eventDate || ""}</td>
-        <td>${o.drinks || ""}</td>
-        <td>${o.cart || ""}</td>
-        <td>عربون: ${o.deposit}<br>تأمين: ${o.insurance}</td>
-        <td>${o.net}</td>
-        <td>
-          <button class="btn done">تمت</button>
-          <button class="btn edit">تعديل</button>
-          <button class="btn delete">حذف</button>
-        </td>
-      </tr>`;
-    });
+  orders.forEach((o,i)=>{
+    const eventDate = new Date(o.eventDate);
+    const diff = Math.ceil((eventDate - today)/(1000*60*60*24));
+    const color = diff<=2 ? "var(--red)" : diff<=5 ? "var(--yellow)" : "var(--green)";
+
+    const drinks = o.drinks
+      ? o.drinks.split("،").map(d=><li>${d}</li>).join("")
+      : "";
+
+    const tr = document.createElement("tr");
+    tr.style.background=color;
+
+    tr.innerHTML=`
+      <td>${i+1}</td>
+
+      <td class="client">
+        <strong>${o.name || ""}</strong><br>
+        ${o.phone || ""}
+      </td>
+
+      <td>${o.bookingDate || ""}</td>
+      <td>${o.eventDate || ""}</td>
+
+      <td>
+        <details>
+          <summary>عرض</summary>
+          <ul>${drinks}</ul>
+        </details>
+      </td>
+
+      <td>${o.cart || ""}</td>
+
+      <td class="money">
+        عربون: ${o.deposit || 0}<br>
+        تأمين: ${o.insurance || 0}
+      </td>
+
+      <td>${o.net || 0}</td>
+
+      <td>
+        <button class="btn done" onclick="markDone(${o.rowIndex})">تمّت</button>
+        <button class="btn edit" onclick="editOrder(${o.rowIndex})">تعديل</button>
+        <button class="btn delete" onclick="deleteOrder(${o.rowIndex})">حذف</button>
+      </td>
+    `;
+    body.appendChild(tr);
+  });
 });
-</script>
 
+/* ✅ تمّت الخدمة */
+function markDone(row){
+  if(!confirm("تأكيد إنهاء الخدمة؟")) return;
+
+  fetch(SHEET_URL,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({ action:"done", rowIndex:row })
+  }).then(()=>{
+    location.href="completed.html";
+  });
+}
+
+/* ✏️ تعديل */
+function editOrder(row){
+  sessionStorage.setItem("editRow", row);
+  location.href="add.html";
+}
+
+/* 🗑️ حذف */
+function deleteOrder(row){
+  if(!confirm("هل أنت متأكد من الحذف؟")) return;
+
+  fetch(SHEET_URL,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({ action:"delete", rowIndex:row })
+  }).then(()=>location.reload());
+}
+</script>
 </body>
 </html>
