@@ -39,11 +39,14 @@ li{ display:flex; justify-content:space-between; }
 </head>
 
 <body>
-
 <script>
-// 🔐 حماية الصفحة
-if(!sessionStorage.getItem("loggedIn")){
-  location.href="login.html";
+const MAX_TIME = 5 * 60 * 1000; // 5 دقائق
+const loggedIn = sessionStorage.getItem("loggedIn");
+const lastLogin = sessionStorage.getItem("lastLogin");
+
+if(!loggedIn || !lastLogin || (Date.now() - lastLogin > MAX_TIME)){
+  sessionStorage.clear();
+  location.href = "login.html";
 }
 </script>
 
