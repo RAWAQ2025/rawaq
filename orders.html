@@ -5,18 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>عرض الطلبات - رواق</title>
 
-<script>
-// 🔐 حماية الجلسة (5 دقائق)
-const MAX_TIME = 5 * 60 * 1000;
-const loggedIn = sessionStorage.getItem("loggedIn");
-const lastLogin = sessionStorage.getItem("lastLogin");
-
-if(!loggedIn || !lastLogin || (Date.now() - lastLogin > MAX_TIME)){
-  sessionStorage.clear();
-  location.href = "login.html";
-}
-</script>
-
 <style>
 :root{
   --purple:#4b1f5c;
@@ -28,40 +16,17 @@ if(!loggedIn || !lastLogin || (Date.now() - lastLogin > MAX_TIME)){
 body{margin:0;font-family:Tahoma,Arial;background:var(--bg);}
 .container{max-width:95%;margin:20px auto;background:#fff;padding:15px;border-radius:12px;}
 h2{text-align:center;color:var(--purple);}
-
 table{width:100%;border-collapse:collapse;margin-top:15px;font-size:14px;}
 th,td{border:1px solid #ddd;padding:8px;text-align:center;vertical-align:top;}
 th{background:var(--purple);color:#fff;}
-
 .client-box{line-height:1.6;font-size:13px;}
-.money-box{font-size:13px;line-height:1.5;}
-
+.money-box{line-height:1.4;font-size:13px;}
 details summary{cursor:pointer;color:var(--purple);font-weight:bold;}
 details ul{padding-right:18px;margin:6px 0 0;text-align:right;}
-
-.btn{
-  border:none;
-  padding:6px 10px;
-  border-radius:6px;
-  cursor:pointer;
-  font-size:12px;
-  margin:2px;
-}
+.btn{border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:12px;margin:2px;}
 .done{background:#4b1f5c;color:#fff;}
-.edit{background:#ffc107;}
 .delete{background:#dc3545;color:#fff;}
-
-.back-btn{
-  margin-top:15px;
-  width:100%;
-  padding:12px;
-  background:#ddd;
-  color:#4b1f5c;
-  border:none;
-  border-radius:10px;
-  cursor:pointer;
-}
-
+.back-btn{margin-top:15px;width:100%;padding:12px;background:#ddd;color:#4b1f5c;border:none;border-radius:10px;cursor:pointer;}
 .empty{text-align:center;margin-top:20px;color:#777;}
 </style>
 </head>
@@ -89,125 +54,125 @@ details ul{padding-right:18px;margin:6px 0 0;text-align:right;}
 </table>
 
 <div id="emptyMsg" class="empty" style="display:none">لا توجد طلبات</div>
-
 <button class="back-btn" onclick="location.href='index.html'">العودة</button>
 </div>
 
 <script>
-// 🔗 رابط Google Apps Script
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbw8pGujQ5M2sXPBG4RgZ1uo__t6eMfms_mziWfm0KSYtx_J3bO2VHNou2PNByi_mGHc/exec";
+/* 🔐 حماية الجلسة 5 دقائق */
+const MAX_TIME = 5 * 60 * 1000;
+const loggedIn = sessionStorage.getItem("loggedIn");
+const lastLogin = sessionStorage.getItem("lastLogin");
+if(!loggedIn || !lastLogin || (Date.now() - lastLogin > MAX_TIME)){
+  sessionStorage.clear();
+  location.href = "login.html";
+}
+
+/* 🔗 رابط قوقل */
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbyOdpSCvExTjFQBloUDDNnGC-V12puJQf8-5EG1zFxFla04jrNsOMP89EqednbQyU2V/exec";
+
+const body = document.getElementById("tableBody");
+const emptyMsg = document.getElementById("emptyMsg");
 
 fetch(SHEET_URL)
   .then(r => r.json())
-  .then(data => renderTable(data))
-  .catch(()=>alert("فشل جلب البيانات من قوقل"));
+  .then(data => {
+    if(!data.length){
+      emptyMsg.style.display="block";
+      return;
+    }
 
-function renderTable(orders){
-  const body = document.getElementById("tableBody");
-  const emptyMsg = document.getElementById("emptyMsg");
-  body.innerHTML = "";
+    // فقط الطلبات الجديدة
+    const orders = data.filter(o => o.status === "جديد");
 
-  if(!orders.length){
+    // ترتيب حسب تاريخ المناسبة
+    orders.sort((a,b)=> new Date(a.eventDate) - new Date(b.eventDate));
+
+    let counter = 1;
+    const today = new Date();
+
+    orders.forEach((order)=>{
+      const eventDate = new Date(order.eventDate);
+      const diffDays = Math.ceil((eventDate - today)/(1000*60*60*24));
+
+      let color =
+        diffDays <= 2 ? "var(--red)" :
+        diffDays <= 5 ? "var(--yellow)" :
+        "var(--green)";
+
+      const drinksArr = order.drinks ? order.drinks.split("،") : [];
+      const drinksList = drinksArr.map(d=><li>${d}</li>).join("");
+
+      const tr = document.createElement("tr");
+      tr.style.background = color;
+
+      tr.innerHTML = `
+        <td><strong>${counter++}</strong></td>
+
+        <td class="client-box">
+          <strong>${order.name || ""}</strong><br>
+          ${order.phone || ""}
+        </td>
+
+        <td>${order.bookingDate || ""}</td>
+        <td>${order.eventDate || ""}</td>
+
+        <td>
+          <details>
+            <summary>عرض</summary>
+            <ul>${drinksList}</ul>
+          </details>
+        </td>
+
+        <td>${order.cart || ""}</td>
+
+        <td class="money-box">
+          عربون: ${order.deposit || 0}<br>
+          تأمين: ${order.insurance || 0}
+        </td>
+
+        <td>${order.net || 0}</td>
+
+        <td>
+          <button class="btn done" onclick='markDone("${order.name}","${order.phone}")'>تمّت الخدمة</button>
+          <button class="btn delete" onclick='deleteOrder("${order.name}","${order.phone}")'>حذف</button>
+        </td>
+      `;
+      body.appendChild(tr);
+    });
+  })
+  .catch(()=>{
     emptyMsg.style.display="block";
-    return;
-  }
-
-  // ترتيب حسب تاريخ المناسبة
-  orders.sort((a,b)=> new Date(a.eventDate) - new Date(b.eventDate));
-
-  const today = new Date();
-  let counter = 1;
-
-  orders.forEach(order=>{
-    if(order.status !== "جديد") return;
-
-    const eventDate = new Date(order.eventDate);
-    const diffDays = Math.ceil((eventDate - today)/(1000*60*60*24));
-    let color = diffDays<=2 ? "var(--red)" : diffDays<=5 ? "var(--yellow)" : "var(--green)";
-
-    const drinksArr = order.drinks ? order.drinks.split("،") : [];
-    const drinksList = drinksArr.map(d=><li>${d}</li>).join("");
-
-    const tr = document.createElement("tr");
-    tr.style.background = color;
-
-    tr.innerHTML = `
-      <td><strong>${counter++}</strong></td>
-
-      <td class="client-box">
-        ${order.name || ""}<br>
-        ${order.phone || ""}
-      </td>
-
-      <td>${order.bookingDate || ""}</td>
-      <td>${order.eventDate || ""}</td>
-
-      <td>
-        <details>
-          <summary>عرض</summary>
-          <ul>${drinksList}</ul>
-        </details>
-      </td>
-
-      <td>${order.cart || ""}</td>
-
-      <td class="money-box">
-        عربون: ${order.deposit || 0}<br>
-        تأمين: ${order.insurance || 0}
-      </td>
-
-      <td>${order.net || 0}</td>
-
-      <td>
-        <button class="btn done" onclick='markDone(${JSON.stringify(order)})'>تمت الخدمة</button>
-        <button class="btn edit" onclick='editOrder(${JSON.stringify(order)})'>تعديل</button>
-        <button class="btn delete" onclick='deleteOrder(${JSON.stringify(order)})'>حذف</button>
-      </td>
-    `;
-    body.appendChild(tr);
+    emptyMsg.textContent="فشل جلب البيانات من قوقل";
   });
-}
 
-// ✅ تمت الخدمة
-function markDone(order){
-  if(!confirm("تأكيد إتمام الخدمة؟")) return;
+/* ✅ تمّت الخدمة */
+function markDone(name, phone){
+  if(!confirm("تأكيد تمّت الخدمة؟")) return;
 
   fetch(SHEET_URL,{
     method:"POST",
     headers:{ "Content-Type":"application/json" },
     body: JSON.stringify({
       action:"done",
-      name: order.name,
-      phone: order.phone
+      name:name,
+      phone:phone
     })
-  }).then(()=>{
-    alert("تم تحديث الحالة ✅");
-    location.reload();
-  });
+  }).then(()=>location.reload());
 }
 
-// ✅ حذف
-function deleteOrder(order){
-  if(!confirm("هل أنت متأكد من حذف الطلب؟")) return;
+/* 🗑️ حذف */
+function deleteOrder(name, phone){
+  if(!confirm("هل أنت متأكد من الحذف؟")) return;
 
   fetch(SHEET_URL,{
     method:"POST",
     headers:{ "Content-Type":"application/json" },
     body: JSON.stringify({
       action:"delete",
-      name: order.name,
-      phone: order.phone
+      name:name,
+      phone:phone
     })
-  }).then(()=>{
-    alert("تم حذف الطلب ✅");
-    location.reload();
-  });
-}
-
-// ✅ تعديل
-function editOrder(order){
-  localStorage.setItem("editOrder", JSON.stringify(order));
-  location.href = "add.html";
+  }).then(()=>location.reload());
 }
 </script>
 
