@@ -5,97 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>عرض الطلبات - رواق</title>
 
-<style>
-:root{
-  --purple:#4b1f5c;
-  --bg:#f4f1f6;
-  --red:#f8d7da;
-  --yellow:#fff3cd;
-  --green:#d4edda;
-}
-body{
-  margin:0;
-  font-family:Tahoma,Arial;
-  background:var(--bg);
-}
-.container{
-  max-width:95%;
-  margin:20px auto;
-  background:#fff;
-  padding:15px;
-  border-radius:12px;
-}
-h2{
-  text-align:center;
-  color:var(--purple);
-}
-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:15px;
-  font-size:14px;
-}
-th,td{
-  border:1px solid #ddd;
-  padding:8px;
-  text-align:center;
-  vertical-align:top;
-}
-th{
-  background:var(--purple);
-  color:#fff;
-}
-details summary{
-  cursor:pointer;
-  color:var(--purple);
-  font-weight:bold;
-}
-details ul{
-  padding-right:18px;
-  margin:6px 0 0;
-  text-align:right;
-}
-.client-box{
-  line-height:1.6;
-  font-size:13px;
-}
-.money-box{
-  line-height:1.6;
-  font-size:13px;
-}
-.btn{
-  border:none;
-  padding:5px 8px;
-  border-radius:6px;
-  cursor:pointer;
-  font-size:12px;
-  margin:2px;
-}
-.done{background:#4b1f5c;color:#fff;}
-.edit{background:#ffc107;}
-.delete{background:#dc3545;color:#fff;}
-.back-btn{
-  margin-top:15px;
-  width:100%;
-  padding:12px;
-  background:#ddd;
-  color:#4b1f5c;
-  border:none;
-  border-radius:10px;
-  cursor:pointer;
-}
-.empty{
-  text-align:center;
-  margin-top:20px;
-  color:#777;
-}
-</style>
-</head>
-
-<body>
-
 <script>
-/* 🔐 حماية الجلسة (5 دقائق) */
+// 🔐 حماية الجلسة (5 دقائق)
 const MAX_TIME = 5 * 60 * 1000;
 const loggedIn = sessionStorage.getItem("loggedIn");
 const lastLogin = sessionStorage.getItem("lastLogin");
@@ -106,126 +17,87 @@ if(!loggedIn || !lastLogin || (Date.now() - lastLogin > MAX_TIME)){
 }
 </script>
 
+<style>
+:root{
+  --purple:#4b1f5c;
+  --bg:#f4f1f6;
+  --red:#f8d7da;
+  --yellow:#fff3cd;
+  --green:#d4edda;
+}
+body{margin:0;font-family:Tahoma;background:var(--bg);}
+.container{max-width:95%;margin:20px auto;background:#fff;padding:15px;border-radius:12px;}
+h2{text-align:center;color:var(--purple);}
+table{width:100%;border-collapse:collapse;margin-top:15px;font-size:14px;}
+th,td{border:1px solid #ddd;padding:8px;text-align:center;vertical-align:top;}
+th{background:var(--purple);color:#fff;}
+.client{line-height:1.6}
+.btn{border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:12px;margin:2px}
+.done{background:#4b1f5c;color:#fff}
+.edit{background:#ffc107}
+.delete{background:#dc3545;color:#fff}
+.back{margin-top:15px;width:100%;padding:12px;border:none;border-radius:10px}
+</style>
+</head>
+
+<body>
 <div class="container">
 <h2>عرض الطلبات</h2>
 
 <table>
 <thead>
 <tr>
-  <th>#</th>
-  <th>العميل</th>
-  <th>تاريخ الحجز</th>
-  <th>تاريخ المناسبة</th>
-  <th>المشروبات</th>
-  <th>العربة</th>
-  <th>العربون / التأمين</th>
-  <th>الصافي</th>
-  <th>إجراءات</th>
+<th>#</th>
+<th>العميل</th>
+<th>تاريخ الحجز</th>
+<th>تاريخ المناسبة</th>
+<th>المشروبات</th>
+<th>العربة</th>
+<th>العربون / التأمين</th>
+<th>الصافي</th>
+<th>إجراءات</th>
 </tr>
 </thead>
-<tbody id="tableBody"></tbody>
+<tbody id="body"></tbody>
 </table>
 
-<div id="emptyMsg" class="empty" style="display:none">لا توجد طلبات</div>
-
-<button class="back-btn" onclick="location.href='index.html'">العودة</button>
+<button class="back" onclick="location.href='index.html'">العودة</button>
 </div>
 
 <script>
-/* 🔗 رابط Google Apps Script */
-const SHEET_URL = "https://script.google.com/macros/s/AKfycby2S-8uftckVNkofiET-mc-zbXe4mqSx4220qNWmm5ABDRD6Nb82__7gyvQcMHcilt3/exec";
-
-const body = document.getElementById("tableBody");
-const emptyMsg = document.getElementById("emptyMsg");
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbwf6_9xR4_dTjX1NxrXmg9HIh55wDGcav7YHu4OOw_OQtiLg6no4WwlV6SipxZ5FdwS/exec";
 
 fetch(SHEET_URL)
-  .then(res => res.json())
-  .then(data => {
+.then(r => r.json())
+.then(data => {
+  const body = document.getElementById("body");
+  const today = new Date();
 
-    if(!data || data.length === 0){
-      emptyMsg.style.display = "block";
-      return;
-    }
+  data
+    .filter(o => o.status === "جديد")
+    .sort((a,b)=> new Date(a.eventDate) - new Date(b.eventDate))
+    .forEach((o,i)=>{
+      const diff = Math.ceil((new Date(o.eventDate)-today)/(1000*60*60*24));
+      const color = diff<=2 ? "var(--red)" : diff<=5 ? "var(--yellow)" : "var(--green)";
 
-    /* ترتيب حسب أقرب تاريخ مناسبة */
-    data.sort((a,b)=> new Date(a.eventDate) - new Date(b.eventDate));
-
-    let today = new Date();
-    let counter = 1;
-
-    data.forEach((order, index) => {
-      if(order.status !== "جديد") return;
-
-      const eventDate = new Date(order.eventDate);
-      const diffDays = Math.ceil((eventDate - today)/(1000*60*60*24));
-
-      let color =
-        diffDays <= 2 ? "var(--red)" :
-        diffDays <= 5 ? "var(--yellow)" :
-        "var(--green)";
-
-      const drinksList = order.drinks
-        ? order.drinks.split("،").map(d => <li>${d}</li>).join("")
-        : "";
-
-      const tr = document.createElement("tr");
-      tr.style.background = color;
-
-      tr.innerHTML = `
-        <td>${counter++}</td>
-
-        <td class="client-box">
-          <strong>${order.name || ""}</strong><br>
-          ${order.phone || ""}
-        </td>
-
-        <td>${order.bookingDate || ""}</td>
-
-        <td>${order.eventDate || ""}</td>
-
+      body.innerHTML += `
+      <tr style="background:${color}">
+        <td>${i+1}</td>
+        <td class="client">${o.name || ""}<br>${o.phone || ""}</td>
+        <td>${o.bookingDate || ""}</td>
+        <td>${o.eventDate || ""}</td>
+        <td>${o.drinks || ""}</td>
+        <td>${o.cart || ""}</td>
+        <td>عربون: ${o.deposit}<br>تأمين: ${o.insurance}</td>
+        <td>${o.net}</td>
         <td>
-          <details>
-            <summary>عرض</summary>
-            <ul>${drinksList}</ul>
-          </details>
+          <button class="btn done">تمت</button>
+          <button class="btn edit">تعديل</button>
+          <button class="btn delete">حذف</button>
         </td>
-
-        <td>${order.cart || ""}</td>
-
-        <td class="money-box">
-          عربون: ${order.deposit || 0}<br>
-          تأمين: ${order.insurance || 0}
-        </td>
-
-        <td>${order.net || 0}</td>
-
-        <td>
-          <button class="btn done" onclick="markDone(${index})">تمت الخدمة</button>
-          <button class="btn edit" onclick="editOrder(${index})">تعديل</button>
-          <button class="btn delete" onclick="deleteOrder(${index})">حذف</button>
-        </td>
-      `;
-
-      body.appendChild(tr);
+      </tr>`;
     });
-  })
-  .catch(err=>{
-    emptyMsg.textContent = "فشل جلب البيانات من قوقل";
-    emptyMsg.style.display = "block";
-    console.error(err);
-  });
-
-function markDone(i){
-  alert("تمت الخدمة – ربطها بقوقل نضيفه بالخطوة الجاية");
-}
-
-function editOrder(i){
-  alert("زر التعديل جاهز – ربطه مع add.html الخطوة الجاية");
-}
-
-function deleteOrder(i){
-  alert("الحذف من قوقل نضيفه لاحقًا");
-}
+});
 </script>
 
 </body>
