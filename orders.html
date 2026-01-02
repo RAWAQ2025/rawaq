@@ -45,13 +45,14 @@ details ul{padding-right:18px;margin:6px 0 0;text-align:right;}
 <table>
 <thead>
 <tr>
-  <th>#</th>
   <th>العميل</th>
+  <th>تاريخ الحجز</th>
   <th>تاريخ / وقت المناسبة</th>
   <th>المشروبات</th>
   <th>العربة</th>
-  <th>العربون / التأمين</th>
   <th>الصافي</th>
+  <th>العربون / التأمين</th>
+  <th>إجراءات</th>
 </tr>
 </thead>
 <tbody id="tableBody"></tbody>
@@ -94,16 +95,51 @@ fetch(SHEET_URL)
 
       const tr = document.createElement("tr");
       tr.style.background = color;
+const customerName = order.name || "";
+const customerPhone = order.phone || "";
 
-      tr.innerHTML = `
-        <td>${i+1}</td>
-        <td>${o.name || ""}</td>
-        <td>${o.eventDate || ""}<br>${o.eventTime || ""}</td>
-        <td>${o.drinks || ""}</td>
-        <td>${o.cart || ""}</td>
-        <td>عربون: ${o.deposit || 0}<br>تأمين: ${o.insurance || 0}</td>
-        <td>${o.net || 0}</td>
-      `;
+const tr = document.createElement("tr");
+tr.style.background = color;
+
+tr.innerHTML = `
+<td class="client-box">
+  <strong>${customerName}</strong><br>
+  <span>${customerPhone}</span>
+</td>
+
+<td>${order.bookingDate || ""}</td>
+
+<td>
+  <strong>${order.eventDate || ""}</strong><br>
+  <span>${order.eventTime || ""}</span>
+</td>
+
+<td>
+  <details>
+    <summary>عرض</summary>
+    <ul>
+      ${(order.drinks || "").split("،").map(d=><li>${d}</li>).join("")}
+    </ul>
+  </details>
+</td>
+
+<td>${order.cart || ""}</td>
+
+<td>${order.net || 0}</td>
+
+<td class="money-box">
+  عربون: ${order.deposit || 0}<br>
+  تأمين: ${order.insurance || 0}
+</td>
+
+<td>
+  <button class="btn done" onclick="markDone(${index})">تمت الخدمة</button>
+  <button class="btn edit" onclick="editOrder(${index})">تعديل</button>
+  <button class="btn delete" onclick="deleteOrder(${index})">حذف</button>
+</td>;
+    
+
+
 
       body.appendChild(tr);
     });
