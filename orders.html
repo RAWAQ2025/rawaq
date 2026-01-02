@@ -105,7 +105,7 @@ fetch(SHEET_URL)
         <td>
           <button class="btn done" onclick="markDone(${o.rowIndex})">تمت</button>
           <button class="btn edit" onclick='editOrder(${JSON.stringify(o)})'>تعديل</button>
-          <button class="btn delete" onclick="deleteOrder(${o.rowIndex})">حذف</button>
+         <button class="btn delete" onclick="deleteOrder(${o.rowIndex})">حذف</button>
         </td>
       </tr>`;
     });
@@ -118,10 +118,23 @@ function markDone(rowIndex){
 }
 
 function deleteOrder(rowIndex){
-  if(!confirm("هل أنت متأكد من الحذف؟")) return;
-  postAction({ action:"delete", rowIndex })
-    .then(()=> location.reload());
-}
+  if(!confirm("هل أنت متأكد من حذف الطلب؟")) return;
+
+  fetch(SHEET_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action: "delete",
+      rowIndex: rowIndex
+    })
+  })
+  .then(() => {
+    alert("تم حذف الطلب");
+    location.reload(); // تحديث الصفحة
+  })
+  .catch(() => {
+    alert("فشل الحذف");
+  });
 
 function editOrder(order){
   localStorage.setItem("editOrder", JSON.stringify(order));
