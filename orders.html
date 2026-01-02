@@ -5,6 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>عرض الطلبات - رواق</title>
 
+<script>
+// 🔐 حماية الجلسة (5 دقائق)
+const MAX_TIME = 5 * 60 * 1000;
+const loggedIn = sessionStorage.getItem("loggedIn");
+const lastLogin = sessionStorage.getItem("lastLogin");
+
+if(!loggedIn || !lastLogin || (Date.now() - lastLogin > MAX_TIME)){
+  sessionStorage.clear();
+  location.href = "login.html";
+}
+</script>
+
 <style>
 :root{
   --purple:#4b1f5c;
@@ -19,135 +31,97 @@ h2{text-align:center;color:var(--purple);}
 table{width:100%;border-collapse:collapse;margin-top:15px;font-size:14px;}
 th,td{border:1px solid #ddd;padding:8px;text-align:center;vertical-align:top;}
 th{background:var(--purple);color:#fff;}
-details summary{cursor:pointer;color:var(--purple);font-weight:bold;}
-details ul{padding-right:18px;margin:6px 0 0;text-align:right;}
-.client-box{line-height:1.6}
-.money-box{line-height:1.6}
+.client{line-height:1.6}
 .btn{border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:12px;margin:2px}
 .done{background:#4b1f5c;color:#fff}
 .edit{background:#ffc107}
 .delete{background:#dc3545;color:#fff}
-.back-btn{margin-top:15px;width:100%;padding:12px;background:#ddd;color:#4b1f5c;border:none;border-radius:10px;cursor:pointer}
-.empty{text-align:center;margin-top:20px;color:#777}
+.back{margin-top:15px;width:100%;padding:12px;border:none;border-radius:10px}
 </style>
 </head>
 
 <body>
-
-<script>
-/* 🔐 حماية الجلسة 5 دقائق */
-const MAX_TIME = 5 * 60 * 1000;
-const loggedIn = sessionStorage.getItem("loggedIn");
-const lastLogin = sessionStorage.getItem("lastLogin");
-
-if(!loggedIn || !lastLogin || (Date.now() - lastLogin > MAX_TIME)){
-  sessionStorage.clear();
-  location.href = "login.html";
-}
-</script>
-
 <div class="container">
 <h2>عرض الطلبات</h2>
 
 <table>
 <thead>
 <tr>
-  <th>#</th>
-  <th>العميل</th>
-  <th>تاريخ الحجز</th>
-  <th>تاريخ المناسبة</th>
-  <th>المشروبات</th>
-  <th>العربة</th>
-  <th>العربون / التأمين</th>
-  <th>الصافي</th>
-  <th>الإجراءات</th>
+<th>#</th>
+<th>العميل</th>
+<th>تاريخ الحجز</th>
+<th>تاريخ المناسبة</th>
+<th>المشروبات</th>
+<th>العربة</th>
+<th>العربون / التأمين</th>
+<th>الصافي</th>
+<th>إجراءات</th>
 </tr>
 </thead>
-<tbody id="tableBody"></tbody>
+<tbody id="body"></tbody>
 </table>
 
-<div id="emptyMsg" class="empty" style="display:none">لا توجد طلبات</div>
-<button class="back-btn" onclick="location.href='index.html'">العودة</button>
+<button class="back" onclick="location.href='index.html'">العودة</button>
 </div>
 
 <script>
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbxbkpWy8GpiKRGQMPctgTLfye-UN7OqZ8gNorIzFxRhzEDxxMcHwgVBML5j16jA-HiO/exec";
-const body = document.getElementById("tableBody");
-const emptyMsg = document.getElementById("emptyMsg");
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbwf6_9xR4_dTjX1NxrXmg9HIh55wDGcav7YHu4OOw_OQtiLg6no4WwlV6SipxZ5FdwS/exec";
+
+function postAction(payload){
+  return fetch(SHEET_URL,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify(payload)
+  });
+}
 
 fetch(SHEET_URL)
-.then(res => res.json())
+.then(r => r.json())
 .then(data => {
-  if(!data.length){
-    emptyMsg.style.display="block";
-    return;
-  }
+  const body = document.getElementById("body");
+  const today = new Date();
 
   data
     .filter(o => o.status === "جديد")
     .sort((a,b)=> new Date(a.eventDate) - new Date(b.eventDate))
     .forEach((o,i)=>{
-      const tr = document.createElement("tr");
+      const diff = Math.ceil((new Date(o.eventDate)-today)/(1000*60*60*24));
+      const color = diff<=2 ? "var(--red)" : diff<=5 ? "var(--yellow)" : "var(--green)";
 
-      const diff = Math.ceil(
-        (new Date(o.eventDate) - new Date()) / (1000*60*60*24)
-      );
-      tr.style.background =
-        diff<=2 ? "var(--red)" :
-        diff<=5 ? "var(--yellow)" :
-        "var(--green)";
-
-      tr.innerHTML = `
+      body.innerHTML += `
+      <tr style="background:${color}">
         <td>${i+1}</td>
-        <td class="client-box">${o.name || ""}<br>${o.phone || ""}</td>
+        <td class="client">${o.name || ""}<br>${o.phone || ""}</td>
         <td>${o.bookingDate || ""}</td>
         <td>${o.eventDate || ""}</td>
-        <td>
-          <details>
-            <summary>عرض</summary>
-            <ul>${(o.drinks||"").split("،").map(d=><li>${d}</li>).join("")}</ul>
-          </details>
-        </td>
+        <td>${o.drinks || ""}</td>
         <td>${o.cart || ""}</td>
-        <td class="money-box">
-          عربون: ${o.deposit || 0}<br>
-          تأمين: ${o.insurance || 0}
-        </td>
-        <td>${o.net || 0}</td>
+        <td>عربون: ${o.deposit}<br>تأمين: ${o.insurance}</td>
+        <td>${o.net}</td>
         <td>
-          <button class="btn done" onclick="markDone(${o.row})">تمت</button>
-          <button class="btn edit" onclick="editOrder(${o.row})">تعديل</button>
-          <button class="btn delete" onclick="deleteOrder(${o.row})">حذف</button>
+          <button class="btn done" onclick="markDone(${o.rowIndex})">تمت</button>
+          <button class="btn edit" onclick='editOrder(${JSON.stringify(o)})'>تعديل</button>
+          <button class="btn delete" onclick="deleteOrder(${o.rowIndex})">حذف</button>
         </td>
-      `;
-      body.appendChild(tr);
+      </tr>`;
     });
-})
-.catch(()=>{
-  emptyMsg.style.display="block";
 });
 
-/* ===== الأزرار ===== */
-function markDone(row){
-  fetch(SHEET_URL,{
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({ action:"done", row })
-  }).then(()=>location.reload());
+function markDone(rowIndex){
+  if(!confirm("تأكيد تمت الخدمة؟")) return;
+  postAction({ action:"done", rowIndex })
+    .then(()=> location.reload());
 }
 
-function deleteOrder(row){
-  if(!confirm("حذف الطلب؟")) return;
-  fetch(SHEET_URL,{
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({ action:"delete", row })
-  }).then(()=>location.reload());
+function deleteOrder(rowIndex){
+  if(!confirm("هل أنت متأكد من الحذف؟")) return;
+  postAction({ action:"delete", rowIndex })
+    .then(()=> location.reload());
 }
 
-function editOrder(row){
-  localStorage.setItem("editRow", row);
-  location.href="add.html";
+function editOrder(order){
+  localStorage.setItem("editOrder", JSON.stringify(order));
+  location.href = "add.html";
 }
 </script>
 
