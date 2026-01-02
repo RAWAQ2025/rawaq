@@ -51,10 +51,10 @@ if(!sessionStorage.getItem("loggedIn")){
 <h2>تسجيل طلب جديد</h2>
 
 <label>اسم العميل</label>
-<input id="name" placeholder="اكتب اسم العميل">
+<input id="name">
 
 <label>رقم الجوال</label>
-<input id="phone" placeholder="05xxxxxxxx">
+<input id="phone">
 
 <label>تاريخ الحجز</label>
 <input type="date" id="bookingDate">
@@ -113,22 +113,21 @@ if(!sessionStorage.getItem("loggedIn")){
 </div>
 
 <script>
-// 🔗 رابط Google Apps Script (كما هو)
+// 🔗 رابط Google Apps Script
 const SHEET_URL = "https://script.google.com/macros/s/AKfycbwIh5xVrmfePd_t2h29cNyZSHmnw_ZX7RD6Wih1xXZ4kfkRUtC7d-BOX5Fgs_ENNm9c/exec";
 
-let drinks = [];
+let drinks=[];
 
 function addDrink(){
   if(!drinkSelect.value) return;
   drinks.push(drinkSelect.value);
   render();
-  drinkSelect.value="";
 }
 
 function render(){
   drinkList.innerHTML="";
   drinks.forEach((d,i)=>{
-    drinkList.innerHTML += `
+    drinkList.innerHTML+=`
       <li>${d}
         <button class="remove" onclick="del(${i})">✖</button>
       </li>`;
@@ -141,20 +140,16 @@ function del(i){
 }
 
 function calc(){
-  const t = Number(total.value) || 0;
-  const d = Number(discount.value) || 0;
-  const a = Number(deposit.value) || 0;
+  const t = +total.value || 0;
+  const d = +discount.value || 0;
+  const a = +deposit.value || 0;
   net.textContent = Math.max(t - d - a, 0);
 }
 
 function saveOrder(){
-
-  const customerName = name.value.trim();   // ✅ الاسم محفوظ صح
-  const customerPhone = phone.value.trim();
-
-  const order = {
-    name: customerName,
-    phone: customerPhone,
+  const order={
+    name: name.value,
+    phone: phone.value,
     bookingDate: bookingDate.value,
     eventDate: eventDate.value,
     drinks: drinks.join("، "),
@@ -167,12 +162,12 @@ function saveOrder(){
     status: "جديد"
   };
 
-  // 1️⃣ حفظ محلي (هذا اللي تعتمد عليه صفحة الطلبات)
+  /* ✅ 1) حفظ الطلب محليًا */
   const orders = JSON.parse(localStorage.getItem("orders") || "[]");
   orders.push(order);
   localStorage.setItem("orders", JSON.stringify(orders));
 
-  // 2️⃣ إرسال لقوقل (بدون ما يأثر)
+  /* ✅ 2) إرساله لقوقل */
   fetch(SHEET_URL,{
     method:"POST",
     mode:"no-cors",
@@ -180,8 +175,9 @@ function saveOrder(){
     body: JSON.stringify(order)
   });
 
+  /* ✅ 3) الانتقال لعرض الطلبات */
   alert("تم حفظ الطلب بنجاح ✅");
-  location.href = "orders.html";
+  location.href = "orders.html"; // عدلي الاسم إذا صفحتك مختلفة
 }
 </script>
 
