@@ -5,8 +5,96 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>عرض الطلبات - رواق</title>
 
-<!-- 🔐 حماية الجلسة (5 دقائق) -->
+<style>
+:root{
+  --purple:#4b1f5c;
+  --bg:#f4f1f6;
+  --red:#f8d7da;
+  --yellow:#fff3cd;
+  --green:#d4edda;
+}
+body{
+  margin:0;
+  font-family:Tahoma,Arial;
+  background:var(--bg);
+}
+.container{
+  max-width:95%;
+  margin:20px auto;
+  background:#fff;
+  padding:15px;
+  border-radius:12px;
+}
+h2{
+  text-align:center;
+  color:var(--purple);
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:15px;
+  font-size:14px;
+}
+th,td{
+  border:1px solid #ddd;
+  padding:8px;
+  text-align:center;
+  vertical-align:top;
+}
+th{
+  background:var(--purple);
+  color:#fff;
+}
+.client-box{
+  line-height:1.6;
+  font-size:13px;
+}
+.money-box{
+  line-height:1.6;
+}
+details summary{
+  cursor:pointer;
+  color:var(--purple);
+  font-weight:bold;
+}
+details ul{
+  padding-right:18px;
+  margin:6px 0 0;
+  text-align:right;
+}
+.btn{
+  border:none;
+  padding:5px 8px;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:12px;
+  margin:2px;
+}
+.done{background:#4b1f5c;color:#fff;}
+.edit{background:#ffc107;}
+.delete{background:#dc3545;color:#fff;}
+.back-btn{
+  margin-top:15px;
+  width:100%;
+  padding:12px;
+  background:#ddd;
+  color:#4b1f5c;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+}
+.empty{
+  text-align:center;
+  margin-top:20px;
+  color:#777;
+}
+</style>
+</head>
+
+<body>
+
 <script>
+/* 🔐 حماية 5 دقائق */
 const MAX_TIME = 5 * 60 * 1000;
 const loggedIn = sessionStorage.getItem("loggedIn");
 const lastLogin = sessionStorage.getItem("lastLogin");
@@ -17,34 +105,13 @@ if(!loggedIn || !lastLogin || (Date.now() - lastLogin > MAX_TIME)){
 }
 </script>
 
-<style>
-:root{
-  --purple:#4b1f5c;
-  --bg:#f4f1f6;
-  --red:#f8d7da;
-  --yellow:#fff3cd;
-  --green:#d4edda;
-}
-body{margin:0;font-family:Tahoma;background:var(--bg);}
-.container{max-width:95%;margin:20px auto;background:#fff;padding:15px;border-radius:12px;}
-h2{text-align:center;color:var(--purple);}
-table{width:100%;border-collapse:collapse;margin-top:15px;font-size:14px;}
-th,td{border:1px solid #ddd;padding:8px;text-align:center;vertical-align:top;}
-th{background:var(--purple);color:#fff;}
-details summary{cursor:pointer;color:var(--purple);font-weight:bold;}
-details ul{padding-right:18px;margin:6px 0 0;text-align:right;}
-.back-btn{margin-top:15px;width:100%;padding:12px;background:#ddd;color:#4b1f5c;border:none;border-radius:10px;}
-.empty{text-align:center;margin-top:20px;color:#777;}
-</style>
-</head>
-
-<body>
 <div class="container">
 <h2>عرض الطلبات</h2>
 
 <table>
 <thead>
 <tr>
+  <th>#</th>
   <th>العميل</th>
   <th>تاريخ الحجز</th>
   <th>تاريخ / وقت المناسبة</th>
@@ -63,90 +130,80 @@ details ul{padding-right:18px;margin:6px 0 0;text-align:right;}
 </div>
 
 <script>
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbz3WF2BOH1Lyma_PfxnNFd639kpi9LMsH9z_r6kpYx4pEJXUTOiz7Hl1jqr7RVQD0Tg/exec";
+const GOOGLE_URL = "https://script.google.com/macros/s/AKfycbwIh5xVrmfePd_t2h29cNyZSHmnw_ZX7RD6Wih1xXZ4kfkRUtC7d-BOX5Fgs_ENNm9c/exec";
 
-fetch(SHEET_URL)
+fetch(GOOGLE_URL)
   .then(res => res.json())
-  .then(data => {
-    const body = document.getElementById("tableBody");
-    const emptyMsg = document.getElementById("emptyMsg");
-    const today = new Date();
+  .then(data => renderOrders(data))
+  .catch(() => alert("فشل جلب الطلبات من قوقل"));
 
-    if(!data || data.length === 0){
-      emptyMsg.style.display = "block";
-      return;
-    }
+function renderOrders(orders){
+  const body = document.getElementById("tableBody");
+  const emptyMsg = document.getElementById("emptyMsg");
+  body.innerHTML = "";
 
-    // ترتيب حسب أقرب تاريخ + وقت
-    data.sort((a,b)=>{
-      const da = new Date(a.eventDate + " " + (a.eventTime || "00:00"));
-      const db = new Date(b.eventDate + " " + (b.eventTime || "00:00"));
-      return da - db;
-    });
+  const today = new Date();
+  let counter = 1;
+  let hasOrders = false;
 
-    data.forEach((o,i)=>{
-      const eventDate = new Date(o.eventDate + " " + (o.eventTime || "00:00"));
-      const diffDays = Math.ceil((eventDate - today)/(1000*60*60*24));
+  orders
+    .filter(o => o.status === "جديد")
+    .sort((a,b)=> new Date(a.eventDate) - new Date(b.eventDate))
+    .forEach((order, index)=>{
 
-      let color =
-        diffDays <= 2 ? "var(--red)" :
-        diffDays <= 5 ? "var(--yellow)" :
-        "var(--green)";
+      hasOrders = true;
+
+      const eventDate = new Date(order.eventDate);
+      const diff = Math.ceil((eventDate - today)/(1000*60*60*24));
+      const color = diff<=2 ? "var(--red)" : diff<=5 ? "var(--yellow)" : "var(--green)";
 
       const tr = document.createElement("tr");
       tr.style.background = color;
-const customerName = order.name || "";
-const customerPhone = order.phone || "";
 
-const tr = document.createElement("tr");
-tr.style.background = color;
+      tr.innerHTML = `
+        <td>${counter++}</td>
 
-tr.innerHTML = `
-<td class="client-box">
-  <strong>${customerName}</strong><br>
-  <span>${customerPhone}</span>
-</td>
+        <td class="client-box">
+          <strong>${order.name || ""}</strong><br>
+          ${order.phone || ""}
+        </td>
 
-<td>${order.bookingDate || ""}</td>
+        <td>${order.bookingDate || ""}</td>
 
-<td>
-  <strong>${order.eventDate || ""}</strong><br>
-  <span>${order.eventTime || ""}</span>
-</td>
+        <td>
+          <strong>${order.eventDate || ""}</strong><br>
+          ${order.eventTime || ""}
+        </td>
 
-<td>
-  <details>
-    <summary>عرض</summary>
-    <ul>
-      ${(order.drinks || "").split("،").map(d=><li>${d}</li>).join("")}
-    </ul>
-  </details>
-</td>
+        <td>
+          <details>
+            <summary>عرض</summary>
+            <ul>
+              ${(order.drinks || "").split("،").map(d=><li>${d}</li>).join("")}
+            </ul>
+          </details>
+        </td>
 
-<td>${order.cart || ""}</td>
+        <td>${order.cart || ""}</td>
 
-<td>${order.net || 0}</td>
+        <td>${order.net || 0}</td>
 
-<td class="money-box">
-  عربون: ${order.deposit || 0}<br>
-  تأمين: ${order.insurance || 0}
-</td>
+        <td class="money-box">
+          عربون: ${order.deposit || 0}<br>
+          تأمين: ${order.insurance || 0}
+        </td>
 
-<td>
-  <button class="btn done" onclick="markDone(${index})">تمت الخدمة</button>
-  <button class="btn edit" onclick="editOrder(${index})">تعديل</button>
-  <button class="btn delete" onclick="deleteOrder(${index})">حذف</button>
-</td>;
-    
-
-
-
+        <td>
+          <button class="btn done">تمت الخدمة</button>
+          <button class="btn edit">تعديل</button>
+          <button class="btn delete">حذف</button>
+        </td>
+      `;
       body.appendChild(tr);
     });
-  })
-  .catch(() => {
-    alert("فشل جلب الطلبات من قوقل");
-  });
+
+  if(!hasOrders) emptyMsg.style.display="block";
+}
 </script>
 
 </body>
