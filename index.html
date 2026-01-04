@@ -2,45 +2,86 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>رواق</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تسجيل الدخول | رواق</title>
+
 <style>
-body{font-family:Tahoma;background:#f5f5f5}
-.box{max-width:500px;margin:40px auto;background:#fff;padding:20px;border-radius:10px}
-a{
-  display:block;
-  background:#4b1d5a;
-  color:#fff;
-  padding:12px;
-  text-align:center;
-  margin:10px 0;
-  border-radius:8px;
-  text-decoration:none;
+body{
+  font-family:Tahoma;
+  background:#f5f5f5;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  margin:0;
 }
-.black{
-  background:#000;
+.box{
+  background:#fff;
+  padding:25px;
+  border-radius:12px;
+  width:320px;
+  text-align:center;
+}
+h3{color:#4b1f5c}
+input{
+  width:100%;
+  padding:10px;
+  margin:12px 0;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+button{
+  background:#4b1f5c;
+  color:#fff;
+  border:none;
+  padding:12px;
+  width:100%;
+  border-radius:8px;
+  font-size:16px;
+  cursor:pointer;
+}
+.error{
+  color:red;
+  margin-top:10px;
+  font-weight:bold;
 }
 </style>
 </head>
-<body>
-  <script>
-const MAX_TIME = 5 * 60 * 1000; // 5 دقائق
-const loggedIn = sessionStorage.getItem("loggedIn");
-const lastLogin = sessionStorage.getItem("lastLogin");
 
-if(!loggedIn || !lastLogin || (Date.now() - lastLogin > MAX_TIME)){
-  sessionStorage.clear();
-  location.href = "login.html";
-}
-</script>
+<body>
 
 <div class="box">
-  <a href="add.html">تسجيل طلب جديد</a>
-  <a href="orders.html">عرض الطلبات</a>
-  <a href="completed.html">الطلبات التي تمت</a>
-  <a href="sales.html">المبيعات</a>
-  <a href="expenses.html">المصروفات</a>
-  <a href="login.html" class="black">تغيير كلمة السر</a>
+  <h3>إدارة رواق</h3>
+  <input type="password" id="pass" placeholder="كلمة المرور">
+  <button onclick="login()">دخول</button>
+  <div id="err" class="error"></div>
 </div>
+
+<script>
+function login(){
+  const pass = document.getElementById("pass").value;
+  const err  = document.getElementById("err");
+
+  err.textContent="";
+
+  if(!pass){
+    err.textContent="أدخلي كلمة السر";
+    return;
+  }
+
+  google.script.run
+    .withSuccessHandler(function(ok){
+      if(ok){
+        sessionStorage.setItem("loggedIn","true");
+        sessionStorage.setItem("loginTime", Date.now());
+        location.href="index.html";
+      }else{
+        err.textContent="كلمة السر غير صحيحة";
+      }
+    })
+    .checkLogin(pass);
+}
+</script>
 
 </body>
 </html>
