@@ -3,173 +3,122 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>تسجيل طلب جديد - رواق</title>
+<title>عرض الطلبات - رواق</title>
 
 <style>
-body{
-  font-family:Tahoma;
-  background:#f4f1f6;
-  margin:0;
+:root{
+  --purple:#4b1f5c;
+  --bg:#f4f1f6;
+  --red:#f8d7da;
+  --yellow:#fff3cd;
+  --green:#d4edda;
 }
-.container{
-  max-width:600px;
-  margin:30px auto;
-  background:#fff;
-  padding:20px;
-  border-radius:12px;
-}
-h2{ text-align:center; color:#4b1f5c; }
-label{ display:block; margin-top:12px; font-weight:bold; }
-input,select{
-  width:100%; padding:10px; margin-top:6px;
-  border-radius:8px; border:1px solid #ccc;
-}
-button{
-  width:100%; margin-top:12px; padding:12px;
-  border:none; border-radius:10px;
-  font-size:16px; cursor:pointer;
-}
-.save{ background:#4b1f5c; color:#fff; }
-.back{ background:#ddd; color:#4b1f5c; }
-ul{ padding-right:20px; }
-li{ display:flex; justify-content:space-between; }
-.remove{ background:none; border:none; color:red; }
-.net{ background:#eee; padding:10px; border-radius:8px; margin-top:10px; }
+body{margin:0;font-family:Tahoma;background:var(--bg);}
+.container{max-width:95%;margin:20px auto;background:#fff;padding:15px;border-radius:12px;}
+h2{text-align:center;color:var(--purple);}
+table{width:100%;border-collapse:collapse;margin-top:15px;font-size:14px;}
+th,td{border:1px solid #ddd;padding:8px;text-align:center;vertical-align:top;}
+th{background:var(--purple);color:#fff;}
+.client{line-height:1.6}
+.btn{border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:12px;margin:2px}
+.done{background:#4b1f5c;color:#fff}
+.edit{background:#ffc107}
+.delete{background:#dc3545;color:#fff}
+.back{margin-top:15px;width:100%;padding:12px;border:none;border-radius:10px}
 </style>
 </head>
 
 <body>
 
 <div class="container">
-<h2>تسجيل طلب جديد</h2>
+  <h2>عرض الطلبات</h2>
 
-<label>اسم العميل</label>
-<input id="name" autocomplete="off">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>العميل</th>
+        <th>تاريخ الحجز</th>
+        <th>تاريخ المناسبة</th>
+        <th>المشروبات</th>
+        <th>العربة</th>
+        <th>العربون / التأمين</th>
+        <th>الصافي</th>
+        <th>إجراءات</th>
+      </tr>
+    </thead>
+    <tbody id="body"></tbody>
+  </table>
 
-<label>رقم الجوال</label>
-<input id="phone">
-
-<label>تاريخ الحجز</label>
-<input type="date" id="bookingDate">
-
-<label>تاريخ المناسبة</label>
-<input type="date" id="eventDate">
-
-<label>المشروبات</label>
-<select id="drinkSelect">
-  <option value="">اختر المشروب</option>
-  <option>هوت شوكلت</option>
-  <option>سحلب</option>
-  <option>كرك</option>
-  <option>كاسترد</option>
-  <option>قهوة عربية</option>
-  <option>قهوة فرنسية</option>
-</select>
-<button onclick="addDrink()">إضافة مشروب</button>
-
-<ul id="drinkList"></ul>
-
-<label>العربة</label>
-<select id="cart">
-  <option value="">اختر العربة</option>
-  <option>كبيرة</option>
-  <option>وسط</option>
-  <option>صغيرة</option>
-</select>
-
-<label>التأمين</label>
-<input type="number" id="insurance" value="0">
-
-<label>العربون</label>
-<input type="number" id="deposit" value="0" oninput="calc()">
-
-<label>إجمالي الفاتورة</label>
-<input type="number" id="total" value="0" oninput="calc()">
-
-<label>الخصم</label>
-<input type="number" id="discount" value="0" oninput="calc()">
-
-<div class="net">
-الصافي: <strong id="net">0</strong>
-</div>
-
-<button class="save" onclick="saveOrder()">حفظ الطلب</button>
-<button class="back" onclick="location.href='index.html'">العودة</button>
+  <button class="back" onclick="location.href='index.html'">العودة</button>
 </div>
 
 <script>
-let drinks = [];
-
-function addDrink(){
-  if(!drinkSelect.value) return;
-  drinks.push(drinkSelect.value);
-  render();
+/* تنسيق التاريخ */
+function formatDate(d){
+  if(!d) return "";
+  return new Date(d).toLocaleDateString("ar-SA");
 }
 
-function render(){
-  drinkList.innerHTML="";
-  drinks.forEach((d,i)=>{
-    drinkList.innerHTML+=`
-      <li>${d}
-        <button class="remove" onclick="del(${i})">✖</button>
-      </li>`;
-  });
-}
+/* تحميل الطلبات */
+google.script.run.withSuccessHandler(function(data){
+  const body = document.getElementById("body");
+  const today = new Date();
+  body.innerHTML = "";
 
-function del(i){
-  drinks.splice(i,1);
-  render();
-}
+  data
+    .filter(o => o.status === "جديد")
+    .sort((a,b)=> new Date(a.eventDate) - new Date(b.eventDate))
+    .forEach((o,i)=>{
+      const diff = Math.ceil((new Date(o.eventDate)-today)/(1000*60*60*24));
+      const color = diff<=2 ? "var(--red)" : diff<=5 ? "var(--yellow)" : "var(--green)";
 
-function calc(){
-  const t = +total.value || 0;
-  const d = +discount.value || 0;
-  const a = +deposit.value || 0;
-  net.textContent = Math.max(t - d - a, 0);
-}
+      body.innerHTML += `
+        <tr style="background:${color}">
+          <td>${i+1}</td>
+          <td class="client">${o.name}<br>${o.phone}</td>
+          <td>${formatDate(o.bookingDate)}</td>
+          <td>${formatDate(o.eventDate)}</td>
+          <td>${o.drinks || ""}</td>
+          <td>${o.cart || ""}</td>
+          <td>
+            عربون: ${o.deposit || 0}<br>
+            تأمين: ${o.insurance || 0}
+          </td>
+          <td>${o.net || 0}</td>
+          <td>
+            <button class="btn done" onclick="markDone(${o.rowIndex})">تمت</button>
+            <button class="btn edit" onclick='editOrder(${JSON.stringify(o)})'>تعديل</button>
+            <button class="btn delete" onclick="deleteOrder(${o.rowIndex})">حذف</button>
+          </td>
+        </tr>
+      `;
+    });
+}).doGet();
 
-/* ✅ الحفظ في Google Sheets */
-function saveOrder(){
-  const order = {
-    name: name.value,
-    phone: phone.value,
-    bookingDate: bookingDate.value,
-    eventDate: eventDate.value,
-    drinks: drinks.join("، "),
-    cart: cart.value,
-    insurance: insurance.value,
-    deposit: deposit.value,
-    discount: discount.value,
-    total: total.value,
-    net: net.textContent,
-    status: "جديد"
-  };
-
+/* تمت */
+function markDone(rowIndex){
+  if(!confirm("تأكيد تمت الخدمة؟")) return;
   google.script.run
-    .withSuccessHandler(function(){
-      alert("تم حفظ الطلب بنجاح ✅");
-      resetForm();
-    })
-    .withFailureHandler(function(err){
-      alert("حصل خطأ في الحفظ ❌");
-      console.error(err);
-    })
-    .doPost({ postData:{ contents: JSON.stringify(order) } });
+    .withSuccessHandler(()=> location.reload())
+    .doPost({ postData:{ contents: JSON.stringify({ action:"done", rowIndex }) } });
 }
 
-function resetForm(){
-  name.value="";
-  phone.value="";
-  bookingDate.value="";
-  eventDate.value="";
-  drinks=[];
-  render();
-  cart.value="";
-  insurance.value=0;
-  deposit.value=0;
-  total.value=0;
-  discount.value=0;
-  net.textContent=0;
+/* حذف */
+function deleteOrder(rowIndex){
+  if(!confirm("هل أنت متأكد من حذف الطلب؟")) return;
+  google.script.run
+    .withSuccessHandler(()=>{
+      alert("تم حذف الطلب");
+      location.reload();
+    })
+    .doPost({ postData:{ contents: JSON.stringify({ action:"delete", rowIndex }) } });
+}
+
+/* تعديل */
+function editOrder(order){
+  sessionStorage.setItem("editOrder", JSON.stringify(order));
+  location.href = "add.html";
 }
 </script>
 
