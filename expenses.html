@@ -1,1 +1,243 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>المصروفات - رواق</title>
 
+<style>
+body{font-family:Tahoma;background:#f4f1f6;margin:0}
+.container{
+  max-width:700px;
+  margin:30px auto;
+  background:#fff;
+  padding:20px;
+  border-radius:12px;
+}
+h2{text-align:center;color:#4b1f5c}
+label{display:block;margin-top:12px;font-weight:bold}
+input{
+  width:100%;
+  padding:10px;
+  margin-top:6px;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+.row{
+  display:flex;
+  gap:10px;
+  margin-top:10px;
+}
+.row input{flex:1}
+.addBtn{
+  padding:10px 14px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  background:#4b1f5c;
+  color:#fff;
+}
+.save{
+  margin-top:15px;
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:#4b1f5c;
+  color:#fff;
+  font-size:16px;
+  cursor:pointer;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:20px;
+  font-size:14px;
+}
+th,td{
+  border:1px solid #ddd;
+  padding:8px;
+  text-align:center;
+}
+th{background:#4b1f5c;color:#fff}
+.btn{
+  border:none;
+  padding:4px 8px;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:12px;
+}
+.edit{background:#ffc107}
+.delete{background:#dc3545;color:#fff}
+.total{
+  margin-top:10px;
+  text-align:left;
+  font-weight:bold;
+}
+.back{
+  margin-top:15px;
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:#ddd;
+  color:#4b1f5c;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h2>المصروفات</h2>
+
+  <label>تاريخ الصرف</label>
+  <input type="date" id="expenseDate">
+
+  <div class="row">
+    <input id="itemName" placeholder="اسم الصنف">
+    <input id="itemAmount" type="number" placeholder="المبلغ">
+    <button class="addBtn" onclick="addItem()">➕</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>الصنف</th>
+        <th>المبلغ</th>
+        <th>إجراء</th>
+      </tr>
+    </thead>
+    <tbody id="tempBody"></tbody>
+  </table>
+
+  <button class="save" onclick="saveExpenses()">حفظ المصروفات</button>
+
+  <hr>
+
+  <table>
+    <thead>
+      <tr>
+        <th>التاريخ</th>
+        <th>الصنف</th>
+        <th>المبلغ</th>
+        <th>إجراء</th>
+      </tr>
+    </thead>
+    <tbody id="body"></tbody>
+  </table>
+
+  <div class="total">مجموع اليوم: <span id="dayTotal">0</span></div>
+
+  <button class="back" onclick="location.href='index.html'">العودة</button>
+</div>
+
+<script>
+let items = [];
+let editIndex = null;
+
+/* إضافة صنف مؤقت */
+function addItem(){
+  if(!itemName.value || !itemAmount.value) return;
+
+  if(editIndex !== null){
+    items[editIndex] = {
+      name: itemName.value,
+      amount: Number(itemAmount.value)
+    };
+    editIndex = null;
+  } else {
+    items.push({
+      name: itemName.value,
+      amount: Number(itemAmount.value)
+    });
+  }
+
+  itemName.value="";
+  itemAmount.value="";
+  renderTemp();
+}
+
+function renderTemp(){
+  tempBody.innerHTML="";
+  items.forEach((it,i)=>{
+    tempBody.innerHTML += `
+      <tr>
+        <td>${i+1}</td>
+        <td>${it.name}</td>
+        <td>${it.amount}</td>
+        <td>
+          <button class="btn edit" onclick="editTemp(${i})">تعديل</button>
+          <button class="btn delete" onclick="removeTemp(${i})">حذف</button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+function editTemp(i){
+  itemName.value = items[i].name;
+  itemAmount.value = items[i].amount;
+  editIndex = i;
+}
+
+function removeTemp(i){
+  items.splice(i,1);
+  renderTemp();
+}
+
+/* حفظ في Google */
+function saveExpenses(){
+  if(!expenseDate.value || items.length === 0){
+    alert("أكملي البيانات");
+    return;
+  }
+
+  google.script.run
+    .withSuccessHandler(()=>{
+      items=[];
+      renderTemp();
+      loadExpenses();
+    })
+    .saveExpenses(expenseDate.value, items);
+}
+
+/* تحميل المصروفات */
+function loadExpenses(){
+  google.script.run.withSuccessHandler(function(data){
+    body.innerHTML="";
+    let total = 0;
+    const today = expenseDate.value;
+
+    data
+      .sort((a,b)=> new Date(b.date) - new Date(a.date))
+      .forEach(e=>{
+        if(e.date === today) total += e.amount;
+
+        body.innerHTML += `
+          <tr>
+            <td>${e.date}</td>
+            <td>${e.name}</td>
+            <td>${e.amount}</td>
+            <td>
+              <button class="btn delete" onclick="deleteExp(${e.rowIndex})">حذف</button>
+            </td>
+          </tr>
+        `;
+      });
+
+    dayTotal.innerText = total;
+  }).getExpenses();
+}
+
+function deleteExp(rowIndex){
+  if(!confirm("حذف المصروف؟")) return;
+  google.script.run.withSuccessHandler(loadExpenses).deleteExpense(rowIndex);
+}
+
+loadExpenses();
+</script>
+
+</body>
+</html>
