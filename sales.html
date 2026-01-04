@@ -2,95 +2,132 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>المبيعات | رواق</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>المبيعات - رواق</title>
 
 <style>
-body{
-  font-family: Tahoma;
-  background:#f5f5f5;
-}
-.box{
-  max-width:420px;
-  margin:40px auto;
+body{font-family:Tahoma;background:#f4f1f6;margin:0}
+.container{
+  max-width:600px;
+  margin:30px auto;
   background:#fff;
   padding:20px;
   border-radius:12px;
+}
+h2{text-align:center;color:#4b1f5c}
+label{display:block;margin-top:12px;font-weight:bold}
+input{
+  width:100%;
+  padding:10px;
+  margin-top:6px;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+button{
+  width:100%;
+  margin-top:15px;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  font-size:16px;
+  cursor:pointer;
+  background:#4b1f5c;
+  color:#fff;
+}
+.summary{
+  background:#eee;
+  padding:12px;
+  border-radius:10px;
+  margin-top:15px;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:15px;
+  font-size:14px;
+}
+th,td{
+  border:1px solid #ddd;
+  padding:8px;
   text-align:center;
 }
-h2{
-  color:#5a1f5f;
-  margin-bottom:20px;
-}
-.card{
-  background:#5a1f5f;
-  color:#fff;
-  padding:14px;
-  margin:10px 0;
-  border-radius:8px;
-  font-size:16px;
-}
-a{
-  display:block;
-  margin-top:15px;
-  text-decoration:none;
-  color:#5a1f5f;
-  font-weight:bold;
+th{background:#4b1f5c;color:#fff}
+.back{
+  background:#ddd;
+  color:#4b1f5c;
 }
 </style>
 </head>
 
 <body>
 
-<div class="box">
-  <h2>📊 المبيعات</h2>
+<div class="container">
+  <h2>المبيعات</h2>
 
-  <div class="card" id="day">مبيعات اليوم: 0</div>
-  <div class="card" id="week">مبيعات الأسبوع: 0</div>
-  <div class="card" id="month">مبيعات الشهر: 0</div>
-  <div class="card" id="year">مبيعات السنة: 0</div>
+  <label>من تاريخ</label>
+  <input type="date" id="fromDate">
 
-  <a href="index.html">⬅ الرجوع للرئيسية</a>
+  <label>إلى تاريخ</label>
+  <input type="date" id="toDate">
+
+  <button onclick="loadSales()">عرض المبيعات</button>
+
+  <div id="summary" class="summary" style="display:none">
+    <div>💰 صافي المبيعات: <strong id="total">0</strong></div>
+    <div>📦 عدد الطلبات: <strong id="count">0</strong></div>
+    <div>📅 عدد الأيام: <strong id="days">0</strong></div>
+  </div>
+
+  <table id="table" style="display:none">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>تاريخ المناسبة</th>
+        <th>صافي الطلب</th>
+      </tr>
+    </thead>
+    <tbody id="body"></tbody>
+  </table>
+
+  <button class="back" onclick="location.href='index.html'">العودة</button>
 </div>
 
 <script>
-let orders = JSON.parse(localStorage.getItem("orders")) || [];
+function formatDate(d){
+  return new Date(d).toLocaleDateString("ar-SA");
+}
 
-let today = new Date();
-let dayTotal = 0, weekTotal = 0, monthTotal = 0, yearTotal = 0;
+function loadSales(){
+  const from = fromDate.value;
+  const to   = toDate.value;
 
-orders.forEach(o => {
-  if (o.status !== "تم") return; // 🔴 فقط المنجزة
-
-  let d = new Date(o.eventDate);
-  let net = Number(o.net || 0);
-
-  // اليوم
-  if (d.toDateString() === today.toDateString()) {
-    dayTotal += net;
+  if(!from || !to){
+    alert("اختاري الفترة كاملة");
+    return;
   }
 
-  // الأسبوع (7 أيام)
-  let diffDays = (today - d) / (1000 * 60 * 60 * 24);
-  if (diffDays >= 0 && diffDays <= 7) {
-    weekTotal += net;
-  }
+  google.script.run
+    .withSuccessHandler(function(res){
+      summary.style.display = "block";
+      table.style.display = "block";
 
-  // الشهر
-  if (d.getMonth() === today.getMonth() &&
-      d.getFullYear() === today.getFullYear()) {
-    monthTotal += net;
-  }
+      total.innerText = res.total;
+      count.innerText = res.count;
+      days.innerText  = res.days;
 
-  // السنة
-  if (d.getFullYear() === today.getFullYear()) {
-    yearTotal += net;
-  }
-});
-
-document.getElementById("day").innerText   = "مبيعات اليوم: "   + dayTotal;
-document.getElementById("week").innerText  = "مبيعات الأسبوع: " + weekTotal;
-document.getElementById("month").innerText = "مبيعات الشهر: "   + monthTotal;
-document.getElementById("year").innerText  = "مبيعات السنة: "   + yearTotal;
+      body.innerHTML = "";
+      res.orders.forEach((o,i)=>{
+        body.innerHTML += `
+          <tr>
+            <td>${i+1}</td>
+            <td>${formatDate(o.eventDate)}</td>
+            <td>${o.net}</td>
+          </tr>
+        `;
+      });
+    })
+    .getSales(from, to);
+}
 </script>
 
 </body>
