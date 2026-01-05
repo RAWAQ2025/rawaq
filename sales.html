@@ -93,6 +93,8 @@ th{background:#4b1f5c;color:#fff}
 </div>
 
 <script>
+const API_URL = "ضع_رابط_exec_هنا";
+
 function formatDate(d){
   return new Date(d).toLocaleDateString("ar-SA");
 }
@@ -106,8 +108,9 @@ function loadSales(){
     return;
   }
 
-  google.script.run
-    .withSuccessHandler(function(res){
+  fetch(`${API_URL}?from=${from}&to=${to}`)
+    .then(r => r.json())
+    .then(res => {
       summary.style.display = "block";
       table.style.display = "block";
 
@@ -125,8 +128,7 @@ function loadSales(){
           </tr>
         `;
       });
-    })
-    .getSales(from, to);
+    });
 }
 </script>
 
