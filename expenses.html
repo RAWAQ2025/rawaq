@@ -134,6 +134,8 @@ th{background:#4b1f5c;color:#fff}
 </div>
 
 <script>
+const API_URL = "ضع_رابط_exec_هنا";
+
 let items = [];
 let editIndex = null;
 
@@ -194,46 +196,60 @@ function saveExpenses(){
     return;
   }
 
-  google.script.run
-    .withSuccessHandler(()=>{
-      items=[];
-      renderTemp();
-      loadExpenses();
+  fetch(API_URL,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({
+      action:"saveExpenses",
+      date: expenseDate.value,
+      items: items
     })
-    .saveExpenses(expenseDate.value, items);
+  })
+  .then(()=>{
+    items=[];
+    renderTemp();
+    loadExpenses();
+  });
 }
 
 /* تحميل المصروفات */
 function loadExpenses(){
-  google.script.run.withSuccessHandler(function(data){
-    body.innerHTML="";
-    let total = 0;
-    const today = expenseDate.value;
+  fetch(API_URL)
+    .then(r=>r.json())
+    .then(data=>{
+      body.innerHTML="";
+      let total = 0;
+      const today = expenseDate.value;
 
-    data
-      .sort((a,b)=> new Date(b.date) - new Date(a.date))
-      .forEach(e=>{
-        if(e.date === today) total += e.amount;
+      data
+        .sort((a,b)=> new Date(b.date) - new Date(a.date))
+        .forEach(e=>{
+          if(e.date === today) total += e.amount;
 
-        body.innerHTML += `
-          <tr>
-            <td>${e.date}</td>
-            <td>${e.name}</td>
-            <td>${e.amount}</td>
-            <td>
-              <button class="btn delete" onclick="deleteExp(${e.rowIndex})">حذف</button>
-            </td>
-          </tr>
-        `;
-      });
+          body.innerHTML += `
+            <tr>
+              <td>${e.date}</td>
+              <td>${e.name}</td>
+              <td>${e.amount}</td>
+              <td>
+                <button class="btn delete" onclick="deleteExp(${e.id})">حذف</button>
+              </td>
+            </tr>
+          `;
+        });
 
-    dayTotal.innerText = total;
-  }).getExpenses();
+      dayTotal.innerText = total;
+    });
 }
 
-function deleteExp(rowIndex){
+function deleteExp(id){
   if(!confirm("حذف المصروف؟")) return;
-  google.script.run.withSuccessHandler(loadExpenses).deleteExpense(rowIndex);
+
+  fetch(API_URL,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ action:"deleteExpense", rowIndex:id })
+  }).then(loadExpenses);
 }
 
 loadExpenses();
