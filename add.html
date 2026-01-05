@@ -99,15 +99,18 @@ li{display:flex;justify-content:space-between}
 </div>
 
 <script>
+/* 🔗 رابط Google Apps Script API */
+const API_URL = "ضع_رابط_exec_هنا";
+
 let drinks = [];
 let editOrder = null;
 
-/* تحميل بيانات التعديل إن وجدت */
+/* تحميل بيانات التعديل */
 if (sessionStorage.getItem("editOrder")) {
   editOrder = JSON.parse(sessionStorage.getItem("editOrder"));
   sessionStorage.removeItem("editOrder");
 
-  document.getElementById("title").innerText = "تعديل الطلب";
+  title.innerText = "تعديل الطلب";
 
   name.value = editOrder.name || "";
   phone.value = editOrder.phone || "";
@@ -155,6 +158,8 @@ function calc(){
 /* حفظ (إضافة أو تعديل) */
 function save(){
   const order = {
+    action: editOrder ? "updateOrder" : "addOrder",
+    rowIndex: editOrder?.rowIndex,
     name: name.value,
     phone: phone.value,
     bookingDate: bookingDate.value,
@@ -168,24 +173,16 @@ function save(){
     net: net.textContent
   };
 
-  if (editOrder) {
-    order.rowIndex = editOrder.rowIndex;
-
-    google.script.run
-      .withSuccessHandler(()=>{
-        alert("تم تعديل الطلب ✅");
-        location.href="orders.html";
-      })
-      .updateOrder(order);
-
-  } else {
-    google.script.run
-      .withSuccessHandler(()=>{
-        alert("تم حفظ الطلب ✅");
-        location.href="orders.html";
-      })
-      .saveOrder(order);
-  }
+  fetch(API_URL,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify(order)
+  })
+  .then(r=>r.json())
+  .then(()=>{
+    alert(editOrder ? "تم تعديل الطلب ✅" : "تم حفظ الطلب ✅");
+    location.href="orders.html";
+  });
 }
 </script>
 
