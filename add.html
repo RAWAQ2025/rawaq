@@ -42,17 +42,15 @@ li{ display:flex; justify-content:space-between; }
 
 <!-- 🔐 الأمان + منع التحديث فقط -->
 <script>
-const MAX_TIME = 5 * 60 * 1000; // 5 دقائق
+const MAX_TIME = 5 * 60 * 1000;
 const loggedIn = sessionStorage.getItem("loggedIn");
 const lastLogin = sessionStorage.getItem("lastLogin");
 
-/* شرط الدخول الأساسي (كما هو) */
 if(!loggedIn || !lastLogin || (Date.now() - lastLogin > MAX_TIME)){
   sessionStorage.clear();
   location.href = "login.html";
 }
 
-/* ➕ منع التحديث فقط (Refresh) */
 const nav = performance.getEntriesByType("navigation")[0];
 if (nav && nav.type === "reload") {
   sessionStorage.clear();
@@ -74,9 +72,6 @@ if (nav && nav.type === "reload") {
 
 <label>تاريخ المناسبة</label>
 <input type="date" id="eventDate">
-
-<label>وقت المناسبة</label>
-<input type="time" id="eventTime">
 
 <label>المشروبات</label>
 <select id="drinkSelect">
@@ -112,7 +107,6 @@ if (nav && nav.type === "reload") {
   <option>وسط</option>
   <option>صغيرة</option>
   <option>وسط + صغيرة</option>
-  <option>وسط + صغيرة + إضافية</option>
 </select>
 
 <label>التأمين</label>
@@ -174,7 +168,6 @@ function saveOrder(){
     phone: phone.value,
     bookingDate: bookingDate.value,
     eventDate: eventDate.value,
-    eventTime: eventTime.value,
     drinks: drinks.join("، "),
     notes: notes.value,
     cart: cart.value,
@@ -186,10 +179,6 @@ function saveOrder(){
     status: "جديد"
   };
 
-  const orders = JSON.parse(localStorage.getItem("orders") || "[]");
-  orders.push(order);
-  localStorage.setItem("orders", JSON.stringify(orders));
-
   fetch(SHEET_URL,{
     method:"POST",
     mode:"no-cors",
@@ -199,11 +188,10 @@ function saveOrder(){
 
   alert("تم حفظ الطلب بنجاح ✅");
 
-  name.value="";
+  customerName.value="";
   phone.value="";
   bookingDate.value="";
   eventDate.value="";
-  eventTime.value="";
   drinks=[];
   render();
   notes.value="";
