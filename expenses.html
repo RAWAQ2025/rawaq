@@ -88,7 +88,7 @@ th{background:#4b1f5c;color:#fff}
 
 <body>
 
-<!-- 🔐 الأمان + منع التحديث (مضاف فقط بدون تعديل أي شي) -->
+<!-- 🔐 الأمان + منع التحديث -->
 <script>
 const MAX_TIME = 5 * 60 * 1000;
 const loggedIn = sessionStorage.getItem("loggedIn");
@@ -115,7 +115,7 @@ if(nav && nav.type === "reload"){
   <div class="row">
     <input id="itemName" placeholder="اسم الصنف">
     <input id="itemAmount" type="number" placeholder="المبلغ">
-    <button class="addBtn" onclick="addItem()">➕</button>
+    <button type="button" class="addBtn" onclick="addItem()">➕</button>
   </div>
 
   <table>
@@ -130,7 +130,6 @@ if(nav && nav.type === "reload"){
     <tbody id="tempBody"></tbody>
   </table>
 
-  <!-- زر الحفظ مع type الصحيح -->
   <button type="button" class="save" onclick="saveExpenses()">حفظ المصروفات</button>
 
   <hr>
@@ -153,26 +152,20 @@ if(nav && nav.type === "reload"){
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbybXzcShfKTGHlK-jX5vrDFxBsSZ9-F5fS0ElN7Ui_x9rQxLIHtasY5rlkO1qwK1kZ-/exec";
+const API_URL = "ضع_رابط_exec_حق_المصروفات_هنا";
 
 let items = [];
 let editIndex = null;
 
-/* إضافة صنف مؤقت */
+/* إضافة صنف */
 function addItem(){
   if(!itemName.value || !itemAmount.value) return;
 
   if(editIndex !== null){
-    items[editIndex] = {
-      name: itemName.value,
-      amount: Number(itemAmount.value)
-    };
+    items[editIndex] = { name:itemName.value, amount:Number(itemAmount.value) };
     editIndex = null;
   } else {
-    items.push({
-      name: itemName.value,
-      amount: Number(itemAmount.value)
-    });
+    items.push({ name:itemName.value, amount:Number(itemAmount.value) });
   }
 
   itemName.value="";
@@ -224,6 +217,7 @@ function saveExpenses(){
       items: items
     })
   })
+  .then(r=>r.json())
   .then(()=>{
     items=[];
     renderTemp();
@@ -231,7 +225,7 @@ function saveExpenses(){
   });
 }
 
-/* تحميل المصروفات */
+/* تحميل من Google */
 function loadExpenses(){
   fetch(API_URL)
     .then(r=>r.json())
@@ -243,7 +237,7 @@ function loadExpenses(){
       data
         .sort((a,b)=> new Date(b.date) - new Date(a.date))
         .forEach(e=>{
-          if(e.date === today) total += e.amount;
+          if(e.date === today) total += Number(e.amount);
 
           body.innerHTML += `
             <tr>
@@ -257,18 +251,23 @@ function loadExpenses(){
           `;
         });
 
-      dayTotal.innerText = total;
+      dayTotal.textContent = total;
     });
 }
 
-function deleteExp(id){
+function deleteExp(rowIndex){
   if(!confirm("حذف المصروف؟")) return;
 
   fetch(API_URL,{
     method:"POST",
     headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({ action:"deleteExpense", rowIndex:id })
-  }).then(loadExpenses);
+    body: JSON.stringify({
+      action:"deleteExpense",
+      rowIndex: rowIndex
+    })
+  })
+  .then(r=>r.json())
+  .then(loadExpenses);
 }
 
 loadExpenses();
