@@ -14,7 +14,7 @@ body{font-family:Tahoma;background:#f4f1f6;margin:0}
   padding:20px;
   border-radius:12px;
 }
-h2{text-align:center;color:#4b1f5c}
+h2,h3{text-align:center;color:#4b1f5c}
 label{display:block;margin-top:12px;font-weight:bold}
 input{
   width:100%;
@@ -88,17 +88,13 @@ th{background:#4b1f5c;color:#fff}
 
 <body>
 
-<!-- 🔐 الأمان + منع التحديث -->
+<!-- 🔐 الأمان (مثل باقي الصفحات) -->
 <script>
-const MAX_TIME = 5 * 60 * 1000;
 const loggedIn = sessionStorage.getItem("loggedIn");
-const lastLogin = sessionStorage.getItem("lastLogin");
-
-if(!loggedIn || !lastLogin || (Date.now() - lastLogin > MAX_TIME)){
+if(!loggedIn){
   sessionStorage.clear();
   location.href = "login.html";
 }
-
 const nav = performance.getEntriesByType("navigation")[0];
 if(nav && nav.type === "reload"){
   sessionStorage.clear();
@@ -132,6 +128,31 @@ if(nav && nav.type === "reload"){
 
   <button type="button" class="save" onclick="saveExpenses()">حفظ المصروفات</button>
 
+  <!-- 🔍 بحث المصروفات -->
+  <hr>
+  <h3>بحث المصروفات</h3>
+
+  <div class="row">
+    <input type="date" id="fromDate">
+    <input type="date" id="toDate">
+    <button class="addBtn" onclick="searchExpenses()">بحث</button>
+  </div>
+
+  <div class="total">عدد الأيام: <span id="daysCount">0</span></div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>التاريخ</th>
+        <th>الصنف</th>
+        <th>المبلغ</th>
+      </tr>
+    </thead>
+    <tbody id="searchBody"></tbody>
+  </table>
+
+  <div class="total">مجموع المصروفات: <span id="rangeTotal">0</span></div>
+
   <hr>
 
   <table>
@@ -152,12 +173,12 @@ if(nav && nav.type === "reload"){
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwBe3GIdZOkRK82HvlO7153gQI8jkDd_FzdCJlGERDWK7EYI621bN3Y2Oj7BmCCA21F/exec";
+const API_URL = "PUT_YOUR_EXPENSES_EXEC_URL_HERE";
 
 let items = [];
 let editIndex = null;
 
-/* ➕ إضافة صنف */
+/* إضافة صنف */
 function addItem(){
   if(!itemName.value || !itemAmount.value) return;
 
@@ -185,8 +206,7 @@ function renderTemp(){
           <button class="btn edit" onclick="editTemp(${i})">تعديل</button>
           <button class="btn delete" onclick="removeTemp(${i})">حذف</button>
         </td>
-      </tr>
-    `;
+      </tr>`;
   });
 }
 
@@ -201,7 +221,7 @@ function removeTemp(i){
   renderTemp();
 }
 
-/* 💾 حفظ في Google (no-cors) */
+/* حفظ */
 function saveExpenses(){
   if(!expenseDate.value || items.length === 0){
     alert("أكملي البيانات");
@@ -225,7 +245,7 @@ function saveExpenses(){
   alert("تم حفظ المصروفات ✅");
 }
 
-/* 📥 تحميل من Google */
+/* تحميل */
 function loadExpenses(){
   fetch(API_URL)
     .then(r=>r.json())
@@ -238,7 +258,6 @@ function loadExpenses(){
         .sort((a,b)=> new Date(b.date) - new Date(a.date))
         .forEach(e=>{
           if(e.date === today) total += Number(e.amount);
-
           body.innerHTML += `
             <tr>
               <td>${e.date}</td>
@@ -247,15 +266,58 @@ function loadExpenses(){
               <td>
                 <button class="btn delete" onclick="deleteExp(${e.rowIndex})">حذف</button>
               </td>
-            </tr>
-          `;
+            </tr>`;
         });
 
       dayTotal.textContent = total;
     });
 }
 
-/* 🗑️ حذف */
+/* عدد الأيام */
+function daysBetween(a,b){
+  const diff = Math.abs(b - a);
+  return Math.ceil(diff / (1000*60*60*24)) + 1;
+}
+
+/* 🔍 بحث (الترتيب: الأقدم → الأحدث) */
+function searchExpenses(){
+  if(!fromDate.value || !toDate.value){
+    alert("اختاري الفترة كاملة");
+    return;
+  }
+
+  const d1 = new Date(fromDate.value);
+  const d2 = new Date(toDate.value);
+
+  daysCount.textContent = daysBetween(d1,d2);
+
+  fetch(API_URL)
+    .then(r=>r.json())
+    .then(data=>{
+      searchBody.innerHTML="";
+      let sum = 0;
+
+      data
+        .filter(e=>{
+          const d = new Date(e.date);
+          return d >= d1 && d <= d2;
+        })
+        .sort((a,b)=> new Date(a.date) - new Date(b.date)) // 👈 الأقدم أولًا
+        .forEach(e=>{
+          sum += Number(e.amount);
+          searchBody.innerHTML += `
+            <tr>
+              <td>${e.date}</td>
+              <td>${e.name}</td>
+              <td>${e.amount}</td>
+            </tr>`;
+        });
+
+      rangeTotal.textContent = sum;
+    });
+}
+
+/* حذف */
 function deleteExp(rowIndex){
   if(!confirm("حذف المصروف؟")) return;
 
@@ -263,10 +325,7 @@ function deleteExp(rowIndex){
     method:"POST",
     mode:"no-cors",
     headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({
-      action:"deleteExpense",
-      rowIndex: rowIndex
-    })
+    body: JSON.stringify({ action:"deleteExpense", rowIndex })
   });
 
   loadExpenses();
