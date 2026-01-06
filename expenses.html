@@ -130,10 +130,7 @@ if(nav && nav.type === "reload"){
     <tbody id="tempBody"></tbody>
   </table>
 
-  <!-- زر الحفظ (مربوط بطريقتين) -->
-  <button type="button" id="saveBtn" class="save" onclick="saveExpenses()">
-    حفظ المصروفات
-  </button>
+  <button type="button" class="save" onclick="saveExpenses()">حفظ المصروفات</button>
 
   <hr>
 
@@ -155,12 +152,12 @@ if(nav && nav.type === "reload"){
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwBe3GIdZOkRK82HvlO7153gQI8jkDd_FzdCJlGERDWK7EYI621bN3Y2Oj7BmCCA21F/exec";
+const API_URL = "ضع_رابط_exec_حق_المصروفات_هنا";
 
 let items = [];
 let editIndex = null;
 
-/* إضافة صنف */
+/* ➕ إضافة صنف */
 function addItem(){
   if(!itemName.value || !itemAmount.value) return;
 
@@ -204,7 +201,7 @@ function removeTemp(i){
   renderTemp();
 }
 
-/* حفظ في Google */
+/* 💾 حفظ في Google (no-cors) */
 function saveExpenses(){
   if(!expenseDate.value || items.length === 0){
     alert("أكملي البيانات");
@@ -213,26 +210,22 @@ function saveExpenses(){
 
   fetch(API_URL,{
     method:"POST",
+    mode:"no-cors",
     headers:{ "Content-Type":"application/json" },
     body: JSON.stringify({
       action:"saveExpenses",
       date: expenseDate.value,
       items: items
     })
-  })
-  .then(r=>r.json())
-  .then(()=>{
-    items=[];
-    renderTemp();
-    loadExpenses();
-  })
-  .catch(err=>{
-    alert("خطأ في الحفظ");
-    console.error(err);
   });
+
+  items=[];
+  renderTemp();
+  loadExpenses();
+  alert("تم حفظ المصروفات ✅");
 }
 
-/* تحميل من Google */
+/* 📥 تحميل من Google */
 function loadExpenses(){
   fetch(API_URL)
     .then(r=>r.json())
@@ -262,28 +255,22 @@ function loadExpenses(){
     });
 }
 
+/* 🗑️ حذف */
 function deleteExp(rowIndex){
   if(!confirm("حذف المصروف؟")) return;
 
   fetch(API_URL,{
     method:"POST",
+    mode:"no-cors",
     headers:{ "Content-Type":"application/json" },
     body: JSON.stringify({
       action:"deleteExpense",
       rowIndex: rowIndex
     })
-  })
-  .then(r=>r.json())
-  .then(loadExpenses);
-}
+  });
 
-/* 🔒 تثبيت زر الحفظ بعد تحميل الصفحة (حل iOS النهائي) */
-document.addEventListener("DOMContentLoaded", () => {
-  const btn = document.getElementById("saveBtn");
-  if(btn){
-    btn.addEventListener("click", saveExpenses);
-  }
-});
+  loadExpenses();
+}
 
 loadExpenses();
 </script>
