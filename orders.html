@@ -6,12 +6,18 @@
 <title>عرض الطلبات - رواق</title>
 
 <script>
-// 🔐 حماية الجلسة (5 دقائق)
+// 🔐 الأمان + منع التحديث فقط
 const MAX_TIME = 5 * 60 * 1000;
 const loggedIn = sessionStorage.getItem("loggedIn");
 const lastLogin = sessionStorage.getItem("lastLogin");
 
 if(!loggedIn || !lastLogin || (Date.now() - lastLogin > MAX_TIME)){
+  sessionStorage.clear();
+  location.href = "login.html";
+}
+
+const nav = performance.getEntriesByType("navigation")[0];
+if (nav && nav.type === "reload") {
   sessionStorage.clear();
   location.href = "login.html";
 }
@@ -52,6 +58,7 @@ th{background:var(--purple);color:#fff;}
 <th>تاريخ الحجز</th>
 <th>تاريخ المناسبة</th>
 <th>المشروبات</th>
+<th>ملاحظات</th>
 <th>العربة</th>
 <th>العربون / التأمين</th>
 <th>الصافي</th>
@@ -70,15 +77,17 @@ const SHEET_URL = "https://script.google.com/macros/s/AKfycbxqp0aagRTRGcIpQGlIjh
 function postAction(payload){
   return fetch(SHEET_URL,{
     method:"POST",
+    mode:"no-cors",
     headers:{ "Content-Type":"application/json" },
     body: JSON.stringify(payload)
   });
 }
-  function formatDate(d){
+
+function formatDate(d){
   if(!d) return "";
-  const date = new Date(d);
-  return date.toLocaleDateString("ar-SA");
+  return new Date(d).toLocaleDateString("ar-SA");
 }
+
 fetch(SHEET_URL)
 .then(r => r.json())
 .then(data => {
@@ -96,9 +105,10 @@ fetch(SHEET_URL)
       <tr style="background:${color}">
         <td>${i+1}</td>
         <td class="client">${o.name || ""}<br>${o.phone || ""}</td>
-      <td>${formatDate(o.eventDate)}</td>
-<td>${formatDate(o.bookingDate)}</td>
+        <td>${formatDate(o.bookingDate)}</td>
+        <td>${formatDate(o.eventDate)}</td>
         <td>${o.drinks || ""}</td>
+        <td>${o.notes || ""}</td>
         <td>${o.cart || ""}</td>
         <td>عربون: ${o.deposit}<br>تأمين: ${o.insurance}</td>
         <td>${o.net}</td>
@@ -113,14 +123,14 @@ fetch(SHEET_URL)
 
 function markDone(rowIndex){
   if(!confirm("تأكيد تمت الخدمة؟")) return;
-  postAction({ action:"done", rowIndex })
-    .then(()=> location.reload());
+  postAction({ action:"done", rowIndex });
+  setTimeout(()=>location.reload(),500);
 }
 
 function deleteOrder(rowIndex){
   if(!confirm("هل أنت متأكد من الحذف؟")) return;
-  postAction({ action:"delete", rowIndex })
-    .then(()=> location.reload());
+  postAction({ action:"delete", rowIndex });
+  setTimeout(()=>location.reload(),500);
 }
 
 function editOrder(order){
