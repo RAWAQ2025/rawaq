@@ -5,6 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>عرض الطلبات - رواق</title>
 
+<script>
+// 🔐 حماية الجلسة (5 دقائق)
+const MAX_TIME = 5 * 60 * 1000;
+const loggedIn = sessionStorage.getItem("loggedIn");
+const lastLogin = sessionStorage.getItem("lastLogin");
+
+if(!loggedIn || !lastLogin || (Date.now() - lastLogin > MAX_TIME)){
+  sessionStorage.clear();
+  location.href = "login.html";
+}
+</script>
+
 <style>
 :root{
   --purple:#4b1f5c;
@@ -25,116 +37,96 @@ th{background:var(--purple);color:#fff;}
 .edit{background:#ffc107}
 .delete{background:#dc3545;color:#fff}
 .back{margin-top:15px;width:100%;padding:12px;border:none;border-radius:10px}
-.empty{text-align:center;margin-top:20px;color:#777}
 </style>
 </head>
 
 <body>
-
 <div class="container">
-  <h2>عرض الطلبات</h2>
+<h2>عرض الطلبات</h2>
 
-  <table>
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>العميل</th>
-        <th>تاريخ الحجز</th>
-        <th>تاريخ المناسبة</th>
-        <th>المشروبات</th>
-        <th>العربة</th>
-        <th>العربون / التأمين</th>
-        <th>الصافي</th>
-        <th>إجراءات</th>
-      </tr>
-    </thead>
-    <tbody id="body"></tbody>
-  </table>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>العميل</th>
+<th>تاريخ الحجز</th>
+<th>تاريخ المناسبة</th>
+<th>المشروبات</th>
+<th>العربة</th>
+<th>العربون / التأمين</th>
+<th>الصافي</th>
+<th>إجراءات</th>
+</tr>
+</thead>
+<tbody id="body"></tbody>
+</table>
 
-  <div id="empty" class="empty" style="display:none">
-    لا توجد طلبات
-  </div>
-
-  <button class="back" onclick="location.href='index.html'">العودة</button>
+<button class="back" onclick="location.href='index.html'">العودة</button>
 </div>
 
 <script>
-/* تنسيق التاريخ */
-function formatDate(d){
-  if(!d) return "";
-  return new Date(d).toLocaleDateString("ar-SA");
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbxbkpWy8GpiKRGQMPctgTLfye-UN7OqZ8gNorIzFxRhzEDxxMcHwgVBML5j16jA-HiO/exec";
+
+function postAction(payload){
+  return fetch(SHEET_URL,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify(payload)
+  });
 }
-
-/* تحميل الطلبات من localStorage */
-function loadOrders(){
+  function formatDate(d){
+  if(!d) return "";
+  const date = new Date(d);
+  return date.toLocaleDateString("ar-SA");
+}
+fetch(SHEET_URL)
+.then(r => r.json())
+.then(data => {
   const body = document.getElementById("body");
-  const empty = document.getElementById("empty");
-  body.innerHTML = "";
-
-  const orders = JSON.parse(localStorage.getItem("orders") || "[]");
-
-  if(orders.length === 0){
-    empty.style.display = "block";
-    return;
-  }
-
-  empty.style.display = "none";
-
   const today = new Date();
 
-  orders
-    .filter(o => o.status !== "تم")
+  data
+    .filter(o => o.status === "جديد")
     .sort((a,b)=> new Date(a.eventDate) - new Date(b.eventDate))
     .forEach((o,i)=>{
       const diff = Math.ceil((new Date(o.eventDate)-today)/(1000*60*60*24));
-      const color =
-        diff <= 2 ? "var(--red)" :
-        diff <= 5 ? "var(--yellow)" :
-        "var(--green)";
+      const color = diff<=2 ? "var(--red)" : diff<=5 ? "var(--yellow)" : "var(--green)";
 
       body.innerHTML += `
-        <tr style="background:${color}">
-          <td>${i+1}</td>
-          <td class="client">
-            ${o.name || ""}<br>
-            ${o.phone || ""}
-          </td>
-          <td>${formatDate(o.bookingDate)}</td>
-          <td>${formatDate(o.eventDate)}</td>
-          <td>${o.drinks || ""}</td>
-          <td>${o.cart || ""}</td>
-          <td>
-            عربون: ${o.deposit || 0}<br>
-            تأمين: ${o.insurance || 0}
-          </td>
-          <td>${o.net || 0}</td>
-          <td>
-            <button class="btn edit" onclick='editOrder(${JSON.stringify(o)})'>تعديل</button>
-            <button class="btn delete" onclick="deleteOrder(${i})">حذف</button>
-          </td>
-        </tr>
-      `;
+      <tr style="background:${color}">
+        <td>${i+1}</td>
+        <td class="client">${o.name || ""}<br>${o.phone || ""}</td>
+      <td>${formatDate(o.eventDate)}</td>
+<td>${formatDate(o.bookingDate)}</td>
+        <td>${o.drinks || ""}</td>
+        <td>${o.cart || ""}</td>
+        <td>عربون: ${o.deposit}<br>تأمين: ${o.insurance}</td>
+        <td>${o.net}</td>
+        <td>
+          <button class="btn done" onclick="markDone(${o.rowIndex})">تمت</button>
+          <button class="btn edit" onclick='editOrder(${JSON.stringify(o)})'>تعديل</button>
+          <button class="btn delete" onclick="deleteOrder(${o.rowIndex})">حذف</button>
+        </td>
+      </tr>`;
     });
+});
+
+function markDone(rowIndex){
+  if(!confirm("تأكيد تمت الخدمة؟")) return;
+  postAction({ action:"done", rowIndex })
+    .then(()=> location.reload());
 }
 
-/* تعديل */
+function deleteOrder(rowIndex){
+  if(!confirm("هل أنت متأكد من الحذف؟")) return;
+  postAction({ action:"delete", rowIndex })
+    .then(()=> location.reload());
+}
+
 function editOrder(order){
-  sessionStorage.setItem("editOrder", JSON.stringify(order));
+  localStorage.setItem("editOrder", JSON.stringify(order));
   location.href = "add.html";
 }
-
-/* حذف */
-function deleteOrder(index){
-  if(!confirm("هل أنت متأكد من حذف الطلب؟")) return;
-
-  let orders = JSON.parse(localStorage.getItem("orders") || "[]");
-  orders.splice(index,1);
-  localStorage.setItem("orders", JSON.stringify(orders));
-
-  loadOrders();
-}
-
-loadOrders();
 </script>
 
 </body>
