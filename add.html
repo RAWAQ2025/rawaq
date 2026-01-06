@@ -209,6 +209,17 @@ if (nav && nav.type === "reload") {
 <script>
 /* كودك كامل كما أرسلته بدون أي تعديل */
 </script>
+/* 🔧 إصلاح عدم استجابة الأزرار (بدون تغيير تصميم) */
+button,
+button *,
+.save,
+.remove {
+  pointer-events: auto !important;
+}
 
+.section-title,
+label {
+  pointer-events: none;
+}
 </body>
 </html>
