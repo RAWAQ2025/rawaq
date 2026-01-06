@@ -64,7 +64,7 @@ if (nav && nav.type === "reload") {
 <h2>تسجيل طلب جديد</h2>
 
 <label>اسم العميل</label>
-<input id="name" autocomplete="off">
+<input id="customerName" autocomplete="off">
 
 <label>رقم الجوال</label>
 <input id="phone">
@@ -170,7 +170,7 @@ function calc(){
 
 function saveOrder(){
   const order={
-    name: name.value,
+    name: customerName.value,
     phone: phone.value,
     bookingDate: bookingDate.value,
     eventDate: eventDate.value,
