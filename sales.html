@@ -28,9 +28,22 @@ if(nav && nav.type === "reload"){
   --purple:#4b1f5c;
   --bg:#f4f1f6;
 }
-body{margin:0;font-family:Tahoma;background:var(--bg);}
-.container{max-width:95%;margin:20px auto;background:#fff;padding:15px;border-radius:12px;}
-h2{text-align:center;color:var(--purple);}
+body{
+  margin:0;
+  font-family:Tahoma;
+  background:var(--bg);
+}
+.container{
+  max-width:95%;
+  margin:20px auto;
+  background:#fff;
+  padding:15px;
+  border-radius:12px;
+}
+h2{
+  text-align:center;
+  color:var(--purple);
+}
 
 .filters{
   display:grid;
@@ -65,10 +78,24 @@ button{
   font-weight:bold;
 }
 
-table{width:100%;border-collapse:collapse;font-size:14px;}
-th,td{border:1px solid #ddd;padding:8px;text-align:center;vertical-align:top;}
-th{background:var(--purple);color:#fff;}
-.client{line-height:1.6}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:14px;
+}
+th,td{
+  border:1px solid #ddd;
+  padding:8px;
+  text-align:center;
+  vertical-align:top;
+}
+th{
+  background:var(--purple);
+  color:#fff;
+}
+.client{
+  line-height:1.6;
+}
 
 .back{
   margin-top:15px;
@@ -98,6 +125,7 @@ th{background:var(--purple);color:#fff;}
   <div class="box">عدد الطلبات<br><span id="count">0</span></div>
   <div class="box">مجموع الصافي<br><span id="totalNet">0</span></div>
   <div class="box">مجموع العربون<br><span id="totalDeposit">0</span></div>
+  <div class="box">الإجمالي (الصافي + العربون)<br><span id="grandTotal">0</span></div>
 </div>
 
 <!-- 📋 الجدول -->
@@ -157,21 +185,26 @@ function loadSales(){
         )
         .forEach((o,i)=>{
           countOrders++;
+
           const net = Number(o.net || 0);
           const insurance = Number(o.insurance || 0);
+          const deposit = Number(o.deposit || 0);
 
           totalNetSum += net;
-          totalDepositSum += Number(o.deposit || 0);
+          totalDepositSum += deposit;
 
           body.innerHTML += `
           <tr>
             <td>${i+1}</td>
-            <td class="client">${o.name || ""}<br>${o.phone || ""}</td>
+            <td class="client">
+              ${o.name || ""}<br>${o.phone || ""}
+            </td>
             <td>${formatDate(o.eventDate)}</td>
             <td>
               الصافي: ${net}<br>
+              العربون: ${deposit}<br>
               التأمين: ${insurance}<br>
-              <strong>الإجمالي: ${net + insurance}</strong>
+              <strong>إجمالي الطلب: ${net + insurance}</strong>
             </td>
           </tr>`;
         });
@@ -179,6 +212,7 @@ function loadSales(){
       count.textContent = countOrders;
       totalNet.textContent = totalNetSum;
       totalDeposit.textContent = totalDepositSum;
+      grandTotal.textContent = totalNetSum + totalDepositSum;
     });
 }
 </script>
