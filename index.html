@@ -21,13 +21,22 @@ a{
 }
 </style>
 </head>
-<body>
-  <script>
-const MAX_TIME = 5 * 60 * 1000; // 5 دقائق
-const loggedIn = sessionStorage.getItem("loggedIn");
-const lastLogin = sessionStorage.getItem("lastLogin");
 
-if(!loggedIn || !lastLogin || (Date.now() - lastLogin > MAX_TIME)){
+<body>
+
+<!-- 🔐 الأمان (نفس باقي الصفحات بدون مؤقت) -->
+<script>
+const loggedIn = sessionStorage.getItem("loggedIn");
+
+/* شرط الدخول */
+if(!loggedIn){
+  sessionStorage.clear();
+  location.href = "login.html";
+}
+
+/* منع التحديث (Refresh) */
+const nav = performance.getEntriesByType("navigation")[0];
+if(nav && nav.type === "reload"){
   sessionStorage.clear();
   location.href = "login.html";
 }
@@ -39,7 +48,6 @@ if(!loggedIn || !lastLogin || (Date.now() - lastLogin > MAX_TIME)){
   <a href="completed.html">الطلبات المنجزة</a>
   <a href="sales.html">المبيعات</a>
   <a href="expenses.html">المصروفات</a>
-  
 </div>
 
 </body>
