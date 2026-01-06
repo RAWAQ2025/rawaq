@@ -178,6 +178,12 @@ const API_URL = "https://script.google.com/macros/s/AKfycbwBe3GIdZOkRK82HvlO7153
 let items = [];
 let editIndex = null;
 
+/* 🧠 تنسيق التاريخ بدون وقت */
+function formatDateOnly(d){
+  if(!d) return "";
+  return new Date(d).toLocaleDateString("ar-SA");
+}
+
 /* إضافة صنف */
 function addItem(){
   if(!itemName.value || !itemAmount.value) return;
@@ -260,7 +266,7 @@ function loadExpenses(){
           if(e.date === today) total += Number(e.amount);
           body.innerHTML += `
             <tr>
-              <td>${e.date}</td>
+              <td>${formatDateOnly(e.date)}</td>
               <td>${e.name}</td>
               <td>${e.amount}</td>
               <td>
@@ -279,7 +285,7 @@ function daysBetween(a,b){
   return Math.ceil(diff / (1000*60*60*24)) + 1;
 }
 
-/* 🔍 بحث (الترتيب: الأقدم → الأحدث) */
+/* بحث (الأقدم → الأحدث) */
 function searchExpenses(){
   if(!fromDate.value || !toDate.value){
     alert("اختاري الفترة كاملة");
@@ -302,12 +308,12 @@ function searchExpenses(){
           const d = new Date(e.date);
           return d >= d1 && d <= d2;
         })
-        .sort((a,b)=> new Date(a.date) - new Date(b.date)) // 👈 الأقدم أولًا
+        .sort((a,b)=> new Date(a.date) - new Date(b.date))
         .forEach(e=>{
           sum += Number(e.amount);
           searchBody.innerHTML += `
             <tr>
-              <td>${e.date}</td>
+              <td>${formatDateOnly(e.date)}</td>
               <td>${e.name}</td>
               <td>${e.amount}</td>
             </tr>`;
