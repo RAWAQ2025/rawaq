@@ -187,7 +187,6 @@ function loadSales(){
           countOrders++;
 
           const net = Number(o.net || 0);
-          const insurance = Number(o.insurance || 0);
           const deposit = Number(o.deposit || 0);
 
           totalNetSum += net;
@@ -203,8 +202,7 @@ function loadSales(){
             <td>
               الصافي: ${net}<br>
               العربون: ${deposit}<br>
-              التأمين: ${insurance}<br>
-              <strong>إجمالي الطلب: ${net + insurance}</strong>
+              <strong>إجمالي الطلب: ${net + deposit}</strong>
             </td>
           </tr>`;
         });
