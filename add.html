@@ -134,8 +134,17 @@ const SHEET_URL = "https://script.google.com/macros/s/AKfycbwZPZikrqPEPzXi2M6nZ2
 
 let drinks=[];
 
-// 🟡 بيانات التعديل إن وجدت
-const editData = JSON.parse(localStorage.getItem("editOrder") || "null");
+/* 🟡 قراءة بيانات التعديل (ذكية وآمنة) */
+let editData = null;
+try{
+  editData = JSON.parse(
+    localStorage.getItem("editOrder") ||
+    sessionStorage.getItem("editOrder") ||
+    "null"
+  );
+}catch(e){
+  editData = null;
+}
 
 function addDrink(){
   if(!drinkSelect.value) return;
@@ -165,7 +174,7 @@ function calc(){
   net.textContent = Math.max(t - d - a, 0);
 }
 
-/* 🟢 الوضع الطبيعي: إضافة */
+/* 🟢 إضافة طلب */
 function saveOrder(){
   const order={
     name: customerName.value,
@@ -196,6 +205,8 @@ function saveOrder(){
 
 /* 🟡 وضع التعديل */
 if(editData){
+  sessionStorage.setItem("editOrder", JSON.stringify(editData));
+
   title.textContent = "تعديل الطلب";
   document.querySelector(".save").textContent = "تحديث الطلب";
 
@@ -214,7 +225,6 @@ if(editData){
   drinks = editData.drinks ? editData.drinks.split("، ") : [];
   render();
 
-  // استبدال الحفظ بالتحديث
   window.saveOrder = function(){
     const order={
       action:"update",
@@ -241,8 +251,10 @@ if(editData){
     });
 
     localStorage.removeItem("editOrder");
+    sessionStorage.removeItem("editOrder");
+
     alert("تم تحديث الطلب ✅");
-    location.href = "orders.html"; // عدل الاسم إذا مختلف
+    location.href = "orders.html";
   };
 }
 
