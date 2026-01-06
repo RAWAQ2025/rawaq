@@ -88,55 +88,65 @@ function formatDate(d){
   return new Date(d).toLocaleDateString("ar-SA");
 }
 
-fetch(SHEET_URL)
-.then(r => r.json())
-.then(data => {
-  const body = document.getElementById("body");
-  const today = new Date();
+function loadOrders(){
+  fetch(SHEET_URL)
+  .then(r => r.json())
+  .then(data => {
+    const body = document.getElementById("body");
+    body.innerHTML = "";
 
-  data
-    .filter(o => o.status === "جديد")
-    .sort((a,b)=> new Date(a.eventDate) - new Date(b.eventDate))
-    .forEach((o,i)=>{
-      const diff = Math.ceil((new Date(o.eventDate)-today)/(1000*60*60*24));
-      const color = diff<=2 ? "var(--red)" : diff<=5 ? "var(--yellow)" : "var(--green)";
+    const today = new Date();
 
-      body.innerHTML += `
-      <tr style="background:${color}">
-        <td>${i+1}</td>
-        <td class="client">${o.name || ""}<br>${o.phone || ""}</td>
-        <td>${formatDate(o.bookingDate)}</td>
-        <td>${formatDate(o.eventDate)}</td>
-        <td>${o.drinks || ""}</td>
-        <td>${o.notes || ""}</td>
-        <td>${o.cart || ""}</td>
-        <td>عربون: ${o.deposit}<br>تأمين: ${o.insurance}</td>
-        <td>${o.net}</td>
-        <td>
-          <button class="btn done" onclick="markDone(${o.rowIndex})">تمت</button>
-          <button class="btn edit" onclick='editOrder(${JSON.stringify(o)})'>تعديل</button>
-          <button class="btn delete" onclick="deleteOrder(${o.rowIndex})">حذف</button>
-        </td>
-      </tr>`;
-    });
-});
+    data
+      .filter(o => o.status === "جديد")
+      .sort((a,b)=>{
+        const da = a.eventDate ? new Date(a.eventDate).getTime() : 0;
+        const db = b.eventDate ? new Date(b.eventDate).getTime() : 0;
+        return da - db;
+      })
+      .forEach((o,i)=>{
+        const diff = Math.ceil((new Date(o.eventDate)-today)/(1000*60*60*24));
+        const color = diff<=2 ? "var(--red)" : diff<=5 ? "var(--yellow)" : "var(--green)";
+
+        body.innerHTML += `
+        <tr style="background:${color}">
+          <td>${i+1}</td>
+          <td class="client">${o.name || ""}<br>${o.phone || ""}</td>
+          <td>${formatDate(o.bookingDate)}</td>
+          <td>${formatDate(o.eventDate)}</td>
+          <td>${o.drinks || ""}</td>
+          <td>${o.notes || ""}</td>
+          <td>${o.cart || ""}</td>
+          <td>عربون: ${o.deposit}<br>تأمين: ${o.insurance}</td>
+          <td>${o.net}</td>
+          <td>
+            <button class="btn done" onclick="markDone(${o.rowIndex})">تمت</button>
+            <button class="btn edit" onclick='editOrder(${JSON.stringify(o)})'>تعديل</button>
+            <button class="btn delete" onclick="deleteOrder(${o.rowIndex})">حذف</button>
+          </td>
+        </tr>`;
+      });
+  });
+}
 
 function markDone(rowIndex){
   if(!confirm("تأكيد تمت الخدمة؟")) return;
   postAction({ action:"done", rowIndex });
-  setTimeout(()=>location.reload(),500);
+  setTimeout(loadOrders,500);
 }
 
 function deleteOrder(rowIndex){
   if(!confirm("هل أنت متأكد من الحذف؟")) return;
   postAction({ action:"delete", rowIndex });
-  setTimeout(()=>location.reload(),500);
+  setTimeout(loadOrders,500);
 }
 
 function editOrder(order){
   localStorage.setItem("editOrder", JSON.stringify(order));
   location.href = "add.html";
 }
+
+loadOrders();
 </script>
 
 </body>
