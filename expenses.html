@@ -88,6 +88,24 @@ th{background:#4b1f5c;color:#fff}
 
 <body>
 
+<!-- 🔐 الأمان + منع التحديث (مضاف فقط بدون تعديل أي شي) -->
+<script>
+const MAX_TIME = 5 * 60 * 1000;
+const loggedIn = sessionStorage.getItem("loggedIn");
+const lastLogin = sessionStorage.getItem("lastLogin");
+
+if(!loggedIn || !lastLogin || (Date.now() - lastLogin > MAX_TIME)){
+  sessionStorage.clear();
+  location.href = "login.html";
+}
+
+const nav = performance.getEntriesByType("navigation")[0];
+if(nav && nav.type === "reload"){
+  sessionStorage.clear();
+  location.href = "login.html";
+}
+</script>
+
 <div class="container">
   <h2>المصروفات</h2>
 
@@ -112,7 +130,8 @@ th{background:#4b1f5c;color:#fff}
     <tbody id="tempBody"></tbody>
   </table>
 
-  <button class="save" onclick="saveExpenses()">حفظ المصروفات</button>
+  <!-- زر الحفظ مع type الصحيح -->
+  <button type="button" class="save" onclick="saveExpenses()">حفظ المصروفات</button>
 
   <hr>
 
@@ -232,7 +251,7 @@ function loadExpenses(){
               <td>${e.name}</td>
               <td>${e.amount}</td>
               <td>
-                <button class="btn delete" onclick="deleteExp(${e.id})">حذف</button>
+                <button class="btn delete" onclick="deleteExp(${e.rowIndex})">حذف</button>
               </td>
             </tr>
           `;
