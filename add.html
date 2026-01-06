@@ -3,10 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>تسجيل / تعديل طلب - رواق</title>
+<title>تسجيل طلب جديد - رواق</title>
 
 <style>
-body{font-family:Tahoma;background:#f4f1f6;margin:0}
+body{
+  font-family:Tahoma;
+  background:#f4f1f6;
+  margin:0;
+}
 .container{
   max-width:600px;
   margin:30px auto;
@@ -14,40 +18,43 @@ body{font-family:Tahoma;background:#f4f1f6;margin:0}
   padding:20px;
   border-radius:12px;
 }
-h2{text-align:center;color:#4b1f5c}
-label{display:block;margin-top:12px;font-weight:bold}
+h2{ text-align:center; color:#4b1f5c; }
+label{ display:block; margin-top:12px; font-weight:bold; }
 input,select{
-  width:100%;
-  padding:10px;
-  margin-top:6px;
-  border-radius:8px;
-  border:1px solid #ccc;
+  width:100%; padding:10px; margin-top:6px;
+  border-radius:8px; border:1px solid #ccc;
 }
 button{
-  width:100%;
-  margin-top:12px;
-  padding:12px;
-  border:none;
-  border-radius:10px;
-  font-size:16px;
-  cursor:pointer;
+  width:100%; margin-top:12px; padding:12px;
+  border:none; border-radius:10px;
+  font-size:16px; cursor:pointer;
 }
-.save{background:#4b1f5c;color:#fff}
-.back{background:#ddd;color:#4b1f5c}
-ul{padding-right:20px}
-li{display:flex;justify-content:space-between}
-.remove{background:none;border:none;color:red}
-.net{background:#eee;padding:10px;border-radius:8px;margin-top:10px}
+.save{ background:#4b1f5c; color:#fff; }
+.back{ background:#ddd; color:#4b1f5c; }
+ul{ padding-right:20px; }
+li{ display:flex; justify-content:space-between; }
+.remove{ background:none; border:none; color:red; }
+.net{ background:#eee; padding:10px; border-radius:8px; margin-top:10px; }
 </style>
 </head>
 
 <body>
+<script>
+const MAX_TIME = 5 * 60 * 1000; // 5 دقائق
+const loggedIn = sessionStorage.getItem("loggedIn");
+const lastLogin = sessionStorage.getItem("lastLogin");
+
+if(!loggedIn || !lastLogin || (Date.now() - lastLogin > MAX_TIME)){
+  sessionStorage.clear();
+  location.href = "login.html";
+}
+</script>
 
 <div class="container">
-<h2 id="title">تسجيل طلب جديد</h2>
+<h2>تسجيل طلب جديد</h2>
 
 <label>اسم العميل</label>
-<input id="name">
+<input id="name" autocomplete="off">
 
 <label>رقم الجوال</label>
 <input id="phone">
@@ -58,13 +65,25 @@ li{display:flex;justify-content:space-between}
 <label>تاريخ المناسبة</label>
 <input type="date" id="eventDate">
 
+<label>وقت المناسبة</label>
+<input type="time" id="eventTime">
+
 <label>المشروبات</label>
 <select id="drinkSelect">
-  <option value="">اختر</option>
+  <option value="">اختر المشروب</option>
   <option>هوت شوكلت</option>
   <option>سحلب</option>
   <option>كرك</option>
+  <option>كاسترد</option>
   <option>قهوة عربية</option>
+  <option>قهوة فرنسية</option>
+  <option>قهوة اللوز</option>
+  <option>شاهي أحمر</option>
+  <option>شاهي كرك</option>
+  <option>شاهي أخضر</option>
+  <option>تمر</option>
+  <option>تمر محشي</option>
+  <option>معمول</option>
 </select>
 <button onclick="addDrink()">إضافة مشروب</button>
 
@@ -72,10 +91,11 @@ li{display:flex;justify-content:space-between}
 
 <label>العربة</label>
 <select id="cart">
-  <option value="">اختر</option>
+  <option value="">اختر العربة</option>
   <option>كبيرة</option>
   <option>وسط</option>
   <option>صغيرة</option>
+  <option>وسط + صغيرة</option>
 </select>
 
 <label>التأمين</label>
@@ -94,60 +114,37 @@ li{display:flex;justify-content:space-between}
 الصافي: <strong id="net">0</strong>
 </div>
 
-<button class="save" onclick="save()">حفظ</button>
-<button class="back" onclick="location.href='index.html'">رجوع</button>
+<button class="save" onclick="saveOrder()">حفظ الطلب</button>
+<button class="back" onclick="location.href='index.html'">العودة</button>
 </div>
 
 <script>
-/* 🔗 رابط Google Apps Script API */
-const API_URL = "https://script.google.com/macros/s/AKfycbz3UbGahJquFxzB7U9PvIva6SDi-C8bQVVnwnVSBYtHhRROUn1rJ_YirpbyanX6eS1X/exec";
+// 🔗 رابط Google Apps Script
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbwIh5xVrmfePd_t2h29cNyZSHmnw_ZX7RD6Wih1xXZ4kfkRUtC7d-BOX5Fgs_ENNm9c/exec";
 
-let drinks = [];
-let editOrder = null;
+let drinks=[];
 
-/* تحميل بيانات التعديل */
-if (sessionStorage.getItem("editOrder")) {
-  editOrder = JSON.parse(sessionStorage.getItem("editOrder"));
-  sessionStorage.removeItem("editOrder");
-
-  title.innerText = "تعديل الطلب";
-
-  name.value = editOrder.name || "";
-  phone.value = editOrder.phone || "";
-  bookingDate.value = editOrder.bookingDate || "";
-  eventDate.value = editOrder.eventDate || "";
-  cart.value = editOrder.cart || "";
-  insurance.value = editOrder.insurance || 0;
-  deposit.value = editOrder.deposit || 0;
-  discount.value = editOrder.discount || 0;
-  total.value = editOrder.total || 0;
-  net.textContent = editOrder.net || 0;
-
-  drinks = editOrder.drinks ? editOrder.drinks.split("، ") : [];
-  render();
-}
-
-/* مشروبات */
 function addDrink(){
   if(!drinkSelect.value) return;
   drinks.push(drinkSelect.value);
   render();
 }
+
 function render(){
   drinkList.innerHTML="";
   drinks.forEach((d,i)=>{
-    drinkList.innerHTML += `
+    drinkList.innerHTML+=`
       <li>${d}
         <button class="remove" onclick="del(${i})">✖</button>
       </li>`;
   });
 }
+
 function del(i){
   drinks.splice(i,1);
   render();
 }
 
-/* حساب الصافي */
 function calc(){
   const t = +total.value || 0;
   const d = +discount.value || 0;
@@ -155,42 +152,52 @@ function calc(){
   net.textContent = Math.max(t - d - a, 0);
 }
 
-/* 🔵 إضافة: دالة إظهار رسالة الحفظ */
-function showSavedMessage(){
-  alert(editOrder ? "تم تعديل الطلب ✅" : "تم حفظ الطلب ✅");
-  location.href = "orders.html";
-}
-
-/* حفظ (إضافة أو تعديل) */
-function save(){
-  const order = {
-    action: editOrder ? "updateOrder" : "addOrder",
-    rowIndex: editOrder?.rowIndex,
+function saveOrder(){
+  const order={
     name: name.value,
     phone: phone.value,
     bookingDate: bookingDate.value,
     eventDate: eventDate.value,
+    eventTime: eventTime.value,
     drinks: drinks.join("، "),
     cart: cart.value,
     insurance: insurance.value,
     deposit: deposit.value,
     discount: discount.value,
     total: total.value,
-    net: net.textContent
+    net: net.textContent,
+    status: "جديد"
   };
 
-  fetch(API_URL,{
+  /* حفظ محلي */
+  const orders = JSON.parse(localStorage.getItem("orders") || "[]");
+  orders.push(order);
+  localStorage.setItem("orders", JSON.stringify(orders));
+
+  /* إرسال لقوقل */
+  fetch(SHEET_URL,{
     method:"POST",
-    mode:"no-cors",            // 🔵 إضافة
+    mode:"no-cors",
     headers:{ "Content-Type":"application/json" },
     body: JSON.stringify(order)
-  })
-  .then(()=>{
-    showSavedMessage();        // 🔵 إضافة
-  })
-  .catch(()=>{
-    showSavedMessage();        // 🔵 إضافة
   });
+
+  alert("تم حفظ الطلب بنجاح ✅");
+
+  /* تفريغ الحقول */
+  name.value="";
+  phone.value="";
+  bookingDate.value="";
+  eventDate.value="";
+  eventTime.value="";
+  drinks=[];
+  render();
+  cart.value="";
+  insurance.value=0;
+  deposit.value=0;
+  total.value=0;
+  discount.value=0;
+  net.textContent=0;
 }
 </script>
 
