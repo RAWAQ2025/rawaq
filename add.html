@@ -59,7 +59,7 @@ if (nav && nav.type === "reload") {
 </script>
 
 <div class="container">
-<h2>تسجيل طلب جديد</h2>
+<h2 id="title">تسجيل طلب جديد</h2>
 
 <label>اسم العميل</label>
 <input id="customerName" autocomplete="off">
@@ -134,6 +134,9 @@ const SHEET_URL = "https://script.google.com/macros/s/AKfycbwZPZikrqPEPzXi2M6nZ2
 
 let drinks=[];
 
+// 🟡 بيانات التعديل إن وجدت
+const editData = JSON.parse(localStorage.getItem("editOrder") || "null");
+
 function addDrink(){
   if(!drinkSelect.value) return;
   drinks.push(drinkSelect.value);
@@ -162,6 +165,7 @@ function calc(){
   net.textContent = Math.max(t - d - a, 0);
 }
 
+/* 🟢 الوضع الطبيعي: إضافة */
 function saveOrder(){
   const order={
     name: customerName.value,
@@ -187,7 +191,62 @@ function saveOrder(){
   });
 
   alert("تم حفظ الطلب بنجاح ✅");
+  clearForm();
+}
 
+/* 🟡 وضع التعديل */
+if(editData){
+  title.textContent = "تعديل الطلب";
+  document.querySelector(".save").textContent = "تحديث الطلب";
+
+  customerName.value = editData.name || "";
+  phone.value = editData.phone || "";
+  bookingDate.value = editData.bookingDate || "";
+  eventDate.value = editData.eventDate || "";
+  notes.value = editData.notes || "";
+  cart.value = editData.cart || "";
+  insurance.value = editData.insurance || 0;
+  deposit.value = editData.deposit || 0;
+  discount.value = editData.discount || 0;
+  total.value = editData.total || 0;
+  net.textContent = editData.net || 0;
+
+  drinks = editData.drinks ? editData.drinks.split("، ") : [];
+  render();
+
+  // استبدال الحفظ بالتحديث
+  window.saveOrder = function(){
+    const order={
+      action:"update",
+      rowIndex: editData.rowIndex,
+      name: customerName.value,
+      phone: phone.value,
+      bookingDate: bookingDate.value,
+      eventDate: eventDate.value,
+      drinks: drinks.join("، "),
+      notes: notes.value,
+      cart: cart.value,
+      insurance: insurance.value,
+      deposit: deposit.value,
+      discount: discount.value,
+      total: total.value,
+      net: net.textContent
+    };
+
+    fetch(SHEET_URL,{
+      method:"POST",
+      mode:"no-cors",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify(order)
+    });
+
+    localStorage.removeItem("editOrder");
+    alert("تم تحديث الطلب ✅");
+    location.href = "orders.html"; // عدل الاسم إذا مختلف
+  };
+}
+
+function clearForm(){
   customerName.value="";
   phone.value="";
   bookingDate.value="";
