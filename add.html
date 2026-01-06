@@ -20,7 +20,7 @@ body{
 }
 h2{ text-align:center; color:#4b1f5c; }
 label{ display:block; margin-top:12px; font-weight:bold; }
-input,select{
+input,select,textarea{
   width:100%; padding:10px; margin-top:6px;
   border-radius:8px; border:1px solid #ccc;
 }
@@ -39,12 +39,22 @@ li{ display:flex; justify-content:space-between; }
 </head>
 
 <body>
+
+<!-- 🔐 الأمان + منع التحديث فقط -->
 <script>
 const MAX_TIME = 5 * 60 * 1000; // 5 دقائق
 const loggedIn = sessionStorage.getItem("loggedIn");
 const lastLogin = sessionStorage.getItem("lastLogin");
 
+/* شرط الدخول الأساسي (كما هو) */
 if(!loggedIn || !lastLogin || (Date.now() - lastLogin > MAX_TIME)){
+  sessionStorage.clear();
+  location.href = "login.html";
+}
+
+/* ➕ منع التحديث فقط (Refresh) */
+const nav = performance.getEntriesByType("navigation")[0];
+if (nav && nav.type === "reload") {
   sessionStorage.clear();
   location.href = "login.html";
 }
@@ -84,10 +94,16 @@ if(!loggedIn || !lastLogin || (Date.now() - lastLogin > MAX_TIME)){
   <option>تمر</option>
   <option>تمر محشي</option>
   <option>معمول</option>
+  <option>قهوة سوداء</option>
+  <option>شاهي احمر</option>
+  <option>جنزبيل نعنان</option>
 </select>
-<button onclick="addDrink()">إضافة مشروب</button>
 
+<button onclick="addDrink()">إضافة مشروب</button>
 <ul id="drinkList"></ul>
+
+<label>ملاحظات</label>
+<textarea id="notes" rows="3"></textarea>
 
 <label>العربة</label>
 <select id="cart">
@@ -96,6 +112,7 @@ if(!loggedIn || !lastLogin || (Date.now() - lastLogin > MAX_TIME)){
   <option>وسط</option>
   <option>صغيرة</option>
   <option>وسط + صغيرة</option>
+  <option>وسط + صغيرة + إضافية</option>
 </select>
 
 <label>التأمين</label>
@@ -119,7 +136,6 @@ if(!loggedIn || !lastLogin || (Date.now() - lastLogin > MAX_TIME)){
 </div>
 
 <script>
-// 🔗 رابط Google Apps Script
 const SHEET_URL = "https://script.google.com/macros/s/AKfycbzbmhuPYAIbuVOcmuak8KD5ySvSN9DGNl2LIPrBVH4UfpwEUAzH05GbftRaKvdAGsnQ/exec";
 
 let drinks=[];
@@ -160,6 +176,7 @@ function saveOrder(){
     eventDate: eventDate.value,
     eventTime: eventTime.value,
     drinks: drinks.join("، "),
+    notes: notes.value,
     cart: cart.value,
     insurance: insurance.value,
     deposit: deposit.value,
@@ -169,12 +186,10 @@ function saveOrder(){
     status: "جديد"
   };
 
-  /* حفظ محلي */
   const orders = JSON.parse(localStorage.getItem("orders") || "[]");
   orders.push(order);
   localStorage.setItem("orders", JSON.stringify(orders));
 
-  /* إرسال لقوقل */
   fetch(SHEET_URL,{
     method:"POST",
     mode:"no-cors",
@@ -184,7 +199,6 @@ function saveOrder(){
 
   alert("تم حفظ الطلب بنجاح ✅");
 
-  /* تفريغ الحقول */
   name.value="";
   phone.value="";
   bookingDate.value="";
@@ -192,6 +206,7 @@ function saveOrder(){
   eventTime.value="";
   drinks=[];
   render();
+  notes.value="";
   cart.value="";
   insurance.value=0;
   deposit.value=0;
