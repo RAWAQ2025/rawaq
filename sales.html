@@ -44,7 +44,6 @@ h2{
   text-align:center;
   color:var(--purple);
 }
-
 .filters{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
@@ -63,7 +62,6 @@ button{
   border:none;
   cursor:pointer;
 }
-
 .summary{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
@@ -77,7 +75,6 @@ button{
   text-align:center;
   font-weight:bold;
 }
-
 table{
   width:100%;
   border-collapse:collapse;
@@ -96,7 +93,6 @@ th{
 .client{
   line-height:1.6;
 }
-
 .back{
   margin-top:15px;
   width:100%;
@@ -112,14 +108,12 @@ th{
 <div class="container">
 <h2>المبيعات</h2>
 
-<!-- 🔎 البحث -->
 <div class="filters">
   <input type="date" id="fromDate">
   <input type="date" id="toDate">
   <button onclick="loadSales()">بحث</button>
 </div>
 
-<!-- 📊 الملخص -->
 <div class="summary">
   <div class="box">عدد الأيام<br><span id="days">0</span></div>
   <div class="box">عدد الطلبات<br><span id="count">0</span></div>
@@ -128,7 +122,6 @@ th{
   <div class="box">الإجمالي (الصافي + العربون)<br><span id="grandTotal">0</span></div>
 </div>
 
-<!-- 📋 الجدول -->
 <table>
 <thead>
 <tr>
@@ -183,6 +176,7 @@ function loadSales(){
           new Date(o.eventDate) >= d1 &&
           new Date(o.eventDate) <= d2
         )
+        .sort((a,b) => new Date(a.eventDate) - new Date(b.eventDate)) // ✅ الأقدم أولاً
         .forEach((o,i)=>{
           countOrders++;
 
